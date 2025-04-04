@@ -1,0 +1,644 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  
+
+  
+
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-50452009-4"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-50452009-4');
+  </script>
+  <link rel="stylesheet" href="style.css">
+  
+
+  <meta charset="utf-8">
+  <meta name="robots" content="all,follow">
+  <meta name="googlebot" content="index,follow,snippet,archive">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CursorFlow - Accessibility for all</title>
+  <meta name="author" content="">
+
+  
+  <meta name="keywords" content="devows, hugo, go">	
+  
+
+  
+  <meta name="description" content="Site template made by devcows using hugo">	
+  
+
+  <meta name="generator" content="Hugo 0.53" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
+
+  
+  <link href="/css/animate.css" rel="stylesheet">
+
+  
+  
+  <link href="/css/style.mouse4all.css" rel="stylesheet" id="theme-stylesheet">
+  
+
+  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.mb.YTPlayer/3.2.5/css/jquery.mb.YTPlayer.min.css" media="all" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lazyframe@1.1.6/dist/lazyframe.css" integrity="sha256-9doX6ttfKhtvzmO5wx6yGuMwA4oBCagJvEKcGiNIfSQ=" crossorigin="anonymous">
+  
+  
+  <link href="/css/custom.css" rel="stylesheet">
+
+  
+  <link rel="icon" type="image/png" href="/img/favicon-16x16.png" sizes="16x16">
+  <link rel="icon" type="image/png" href="/img/favicon-32x32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="/img/favicon-96x96.png" sizes="96x96">
+
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css" integrity="sha256-PZLhE6wwMbg4AB3d35ZdBF9HD/dI/y4RazA3iRDurss=" crossorigin="anonymous">
+
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/venobox/1.8.5/venobox.min.css" integrity="sha256-Ce01nkBczUKzTSXmQRec8BWO1RX/JPQuVwxu1QzVjCU=" crossorigin="anonymous">
+
+  <link rel="alternate" href='https://mouse4all.com/index.xml' type="application/rss+xml" title="CursorFlow - Accessibility for all">
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css">
+
+  
+  <meta property="og:title" content="">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="/en//">
+  <meta property="og:image" content="">
+</head>
+<body>
+    
+    
+    
+
+    <div id="all">
+        <header>
+<div class="sticky top-0 z-50 bg-gray-900">
+    <div class="navbar navbar-default yamm fixed-top" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo" class="hidden-sm-xs" style="z-index: 10; height: 100px; margin: -40px -80px;">
+                    <span class="sr-only"> - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                        <span class="sr-only">Toggle Navigation</span>
+                        <i class="fa fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Buy <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="../mobi-mouse">Mobi Mouse</a></li>
+                            <li><a href="../vanni">Vaani</a></li>
+                            <li><a href="../dristi">Dristhi</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="dropdown">
+                        <a href="../dristi">Testimonials</a>
+                    </li>
+
+                    <button id="startBtn" class="card-button">Start Tracking</button>
+        <button id="stopBtn"class="card-button">Stop Tracking</button>
+
+                    <!-- <li class="dropdown">
+                        <a href="/">Articles</a>
+                    </li> -->
+
+                    <li class="dropdown">
+                        <a href="#what_whom">About</a>
+                    </li>
+
+                    <li class="dropdown">
+                        <a href="#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                            <button type="submit" class="btn btn-template-main"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+        </header>
+        
+<script>
+    window.$ = (function () {
+        var q = [], f = function (callback) {
+            q.push(callback);
+        };
+        f.attachReady = function ($) {
+            $(function () {
+                $.each(q, function (index, callback) {
+                    callback.call(document);
+                });
+                q.length = 0;
+            });
+            return $;
+        }
+        return f;
+    })();
+</script>
+        
+        
+<div id="home">
+
+<section id="video">
+    
+    <div id="bgVideo" class="blue-raster" data-property="{
+        videoURL: 'https://youtube/tj-HJO1yG_I',
+        mute: true, showControls: false, useOnMobile: false, ratio: 'auto',
+        quality: 'default', opacity: 1, containment: 'self', loop: true,
+        startAt: 0, stopAt: 0, autoPlay: true, showYTLogo: false, addRaster: true,
+        stopMovieOnBlur: true, playOnlyIfVisible: true, anchor: 'center', abundance: 0.1
+        }">
+        
+        <div class="container" >
+            <div class="row" >
+                <div class="col-xs-10 col-xs-offset-1">
+                    <div class="video-info" id="video-layer" >
+                        <h1>Dristhi</h1>
+                        <h3>Accessibility for Android&trade;</h3>
+                        <h3>Use your tablet or smartphone and desktop without touching the screen</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row text-center">
+                <div class="col-xs-10 col-xs-offset-1">
+                    <div class="gplay-info2">
+                        <a href='#'>
+                            <h3>Try our app for free</h3>
+                        </a>
+                    </div>
+                </div>
+             
+            </div>
+            
+            
+            
+            <div class="row text-center">
+                
+                
+                
+                
+                
+            </div>
+            
+            
+            
+        </div>
+    </div>
+</section>
+
+
+<script>
+    $(function () { $("#bgVideo").YTPlayer(); });
+</script>
+
+<div class="container">
+    <section id="what_whom">
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-7 col-sm-12 pad-t">
+                
+                <h1> Control Your Computer with Just a Glance!</h1>
+
+<p>
+
+   
+
+Introducing the revolutionary Dristhi Mouse – a cutting-edge solution that lets you navigate your computer using eye movements. Powered by advanced eye-tracking technology, it offers hands-free control for enhanced accessibility and convenience. Perfect for presentations, gaming, or everyday tasks, the Iris Mouse is compatible with all major operating systems. Experience precision, comfort, and innovation like never before. Embrace the future of computing – try the Dristhi! </p>
+
+
+
+                
+                <div class="row text-center">
+                    <div class="col-md-9 col-sm-9">
+                        
+                        
+                        
+                        
+                        <a class="venobox text-decoration-none" data-autoplay="true" data-vbtype="video" href='https://youtu.be/tj-HJO1yG_I'>
+                            <div class="button-play" style="margin-top: 40px; margin-bottom: 80px;">
+                                <span style="display: inline-flex; align-items: center;">Video
+                                    <i class="fa fa-play-circle" style="font-size:32px;margin-left:12px"></i>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 col-sm-12 pad-bb">
+                <img src="{{ url_for('static', filename='images/DristiAbout.png') }}" style="border-radius: 9px ; width: 690px; padding:20px"  class="img-responsive img-md center-block" title='Diagram: one or two switches, adapter, and Android tablet or smartphone'>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-5 col-sm-12 hidden-sm-xs">
+                <img src="{{ url_for('static', filename='images/bywhomedristhi.jpg') }}" class="img-responsive img-md center-block img-rounded" style="padding: px;" title='Rafael using an Android phone withand a wobble switch'>
+            </div>
+            <div class="col-md-7 col-sm-12 pad-bb pad-t">
+                <h2>For whom?</h2>
+
+<p>Dristhi Mouse is ideal for individuals with physical disabilities, including those with limited hand mobility or paralysis. It provides hands-free control using eye movements, making it perfect for users with mobility challenges, elderly individuals, and professionals. Ideal for presentations, gaming, or everyday computing, Dristhi enhances accessibility and offers a seamless, precise experience across all major operating systems.</p>
+
+            </div>
+            <div class="col-sm-12 hidden-md hidden-lg">
+                <img src="{{ url_for('static', filename='images/vaani.whom.jpg') }}" class="img-responsive img-md center-block img-rounded" title='Rafael using an Android phone with CursorFlow and a wobble switch'>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="row">
+    <div class="col-md-12 heading text-center">
+        <h2>Features</h2>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-md-2"></div>
+
+    <div class="col-md-4">
+        <div class="box-simple">
+            <div class="icon">
+                
+                <img class="icon" src="{{ url_for('static', filename='images/13.png') }}">
+            </div>
+            <h3>Augmented pointer</h3>
+            <p>Visual aid with big pointer and intersecting axes to easily identify the position of the pointer.</p>
+        </div>
+    </div>
+
+
+
+
+    <div class="col-md-4">
+        <div class="box-simple">
+            <div class="icon">
+                
+                <img class="icon" src="{{ url_for('static', filename='images/14.png') }}">
+            </div>
+            <h3>Up to two switches</h3>
+            <p>Switch control with one or two switches. Compatible with Bluetooth switches and cable switches (3.5 mm connector).</p>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<div class="row">
+    <div class="col-md-2"></div>
+
+    <div class="col-md-4">
+        <div class="box-simple">
+            <div class="icon">
+                
+                <img class="icon" src="{{ url_for('static', filename='images/16.png') }}">
+            </div>
+            <h3>Customizable</h3>
+            <p>Select the menu. Choose the color and size of the pointer. Adjust the timings and scanning speed to your needs.</p>
+        </div>
+    </div>
+
+
+
+
+    <div class="col-md-4">
+        <div class="box-simple">
+            <div class="icon">
+                
+                <img class="icon" src="{{ url_for('static', filename='images/18.png') }}">
+            </div>
+            <h3>Easy to install</h3>
+            <p>You can start using CursorFlow Switch in minutes. Follow the instructions in the quick-start guide included in the app.</p>
+        </div>
+    </div>
+
+</div>
+
+<section class="bar background-pentagon no-mb">
+    <div class="plans" id="plan">
+        <div class="card">
+            <img src="{{ url_for('static', filename='images/30daydristhi.png') }}" alt="Card Image" class="card-image">
+            <h3 class="card-title">Plan 1</h3>
+            <p class="card-text">Description of Plan 1 with great features.</p>
+            <button class="card-button" data-modal-target="modal-1">Buy</button>
+        </div>
+        <div class="card">
+            <img src="{{ url_for('static', filename='images/90daydristhi.png') }}" alt="Card Image" class="card-image">
+            <h3 class="card-title">Plan 2</h3>
+            <p class="card-text">Description of Plan 2 with better features.</p>
+            <button class="card-button" data-modal-target="modal-2">Buy</button>
+        </div>
+        <div class="card">
+            <img src="{{ url_for('static', filename='images/365daydristhi.png') }}" alt="Card Image" class="card-image">
+            <h3 class="card-title">Plan 3</h3>
+            <p class="card-text">Description of Plan 3 with premium features.</p>
+            <button class="card-button" data-modal-target="modal-3">Buy</button>
+        </div>
+    </div>
+
+     
+    <div id="modal-1" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+           
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1200px-QR_code_for_mobile_English_Wikipedia.svg.png" alt="Placeholder Image 1" class="modal-image">
+            <p>Make Payment First</p>
+           <button class="card-button" data-modal-target="modal-3">Install The Driver</button>
+        </div>
+    </div>
+    <div id="modal-2" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1200px-QR_code_for_mobile_English_Wikipedia.svg.png" alt="Placeholder Image 2" class="modal-image">
+            <p>Make Payment First</p>
+            <button class="card-button" data-modal-target="modal-3">Install The Driver</button>
+        </div>
+    </div>
+    <div id="modal-3" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1200px-QR_code_for_mobile_English_Wikipedia.svg.png" alt="Placeholder Image 3" class="modal-image">
+        <p>Make Payment First</p>
+        </div>
+        <button class="card-button" data-modal-target="modal-3">Install The Driver</button>
+    </div>
+
+</section> 
+<script>
+    $(function () {
+        $("#owlTestimonials").owlCarousel({
+            responsive: { 0: { items: 1 }, 600: { items: 2 }, 1000: { items: 3 } },
+            loop: true,
+            autoplay: true,
+            autoplayTimeout: 10000,
+            autoplayHoverPause: true,
+            slideBy: 'page'
+        });
+    });
+</script>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                
+            </div>
+        </div>
+    </div>
+</section> 
+<script>
+    $(function () {
+        $("#owlPartners").owlCarousel({
+            responsive: {
+                0: { items: 2 },
+                600: { items: 4 },
+                1000: { items: 6 }
+            },
+            loop: true,
+            autoplay: true,
+            autoplayTimeout: 10000,
+            autoplayHoverPause: true,
+            slideBy: 'page'
+        });
+    });
+</script>
+
+<section id="contact" class="bar background-white no-mb">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                
+                <div class="heading text-center">
+                    <h2>Contact form</h2>
+                </div>
+                
+                <p class="lead">Send us a message. We will answer you back as soon as possible.</p>
+              
+                
+<div id="contact-message">
+    <form class="contact-form" method="POST" action="">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label for="email">Your email</label>
+                    <input id="email" name="email" type="text" class="form-control" required>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label for="_subject">Subject</label>
+                    <input id="_subject" name="subject" type="text" class="form-control" required>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" class="form-control" required></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 text-center">
+                <button type="submit" class="btn btn-template-main button-big button-orange">Send message
+                    <i class="fa fa-envelope-o"></i>
+                </button>
+            </div>
+        </div>
+        <input type="hidden" name="_language" value="en">
+        <input type="hidden" name="_next" value='/en/contact-sent/'>
+        <input type="hidden" name="_format" value="plain">
+        <input type="text" name="_gotcha" style="display:none">
+    </form>
+</div>
+<script>
+    $(function () {
+        if (Cookies.get("flagToContact")) {
+            Cookies.remove('flagToContact');
+            var id = Math.floor(Math.random() * 1e12);
+            Cookies.set("nextId", id, { expires: 7 });
+            Cookies.set("nextUrl", document.referrer, { expires: 7 });
+            var url = "\/en\/contact-sent\/" + "#" + id.toString();
+            $("input[name='_next']").val(url);
+        }
+    });
+</script>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+
+<footer id="footer" class="bg-dark text-light py-4">
+    <div class="container">
+        <div class="row">
+            <!-- About Section -->
+            <div class="col-md-3 mb-3">
+                <h6>About Us</h6>
+                <p class="small">CursorFlow empowers users to interact with devices effortlessly, making technology accessible to everyone.</p>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-md-3 mb-3">
+                <h6>Quick Links</h6>
+                <ul class="list-unstyled small">
+                    <li><a href="/en//" class="text-light">Home</a></li>
+                    <li><a href="/en/terms-of-use/" class="text-light">Terms of Use</a></li>
+                    <li><a href="/en/privacy-and-cookies/" class="text-light">Privacy Policy</a></li>
+                    <li><a href="/en/contact/" class="text-light">Contact Us</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="col-md-3 mb-3">
+                <h6>Contact Us</h6>
+                <ul class="list-unstyled small">
+                    <li>Email: <a href="divyanshussa@gmail.com" class="text-light">support@cursorflow.com</a></li>
+                    <li>Phone: +91 6397766117</li>
+                    <!-- <li>Address: t, Innovation City</li> -->
+                </ul>
+            </div>
+
+            <!-- Social Media Links -->
+            <div class="col-md-3 mb-3 text-center text-md-start">
+                <h6>Follow Us</h6>
+                <div>
+                    <a href="http://facebook.com/cursorflow" class="text-light me-1" title="Facebook" aria-label="Visit our Facebook">
+                        <i class="fa fa-facebook fa-lg"></i>
+                    </a>
+                    <a href="http://twitter.com/cursurflow" class="text-light me-1" title="Twitter" aria-label="Visit our Twitter">
+                        <i class="fa fa-twitter fa-lg"></i>
+                    </a>
+                    <a href="http://instagram.com/cursurflow" class="text-light me-1" title="Instagram" aria-label="Visit our Instagram">
+                        <i class="fa fa-instagram fa-lg"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/in/iamdivyanshukumar/" class="text-light me-1" title="LinkedIn" aria-label="Visit our LinkedIn">
+                        <i class="fa fa-linkedin fa-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- <h1>Eye-Controlled Mouse</h1>
+        
+        <p>Status: <span id="status">Inactive</span></p> -->
+        
+        <script>
+            const socket = io.connect('http://localhost:5000');
+        
+            document.getElementById('startBtn').addEventListener('click', () => {
+                socket.emit('toggle_mouse', { active: true });
+            });
+        
+            document.getElementById('stopBtn').addEventListener('click', () => {
+                socket.emit('toggle_mouse', { active: false });
+            });
+        
+            socket.on('status', (data) => {
+                document.getElementById('status').innerText = data.active ? 'Active' : 'Inactive';
+            });
+        </script>   
+        <!-- Footer Bottom -->
+        <div class="row">
+            <div class="col-12 text-center mt-3">
+                <p class="small mb-0">&copy; 2024 CursorFlow SL &ndash; All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+    </div>
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0/js.cookie.min.js" integrity="sha256-9Nt2r+tJnSd2A2CRUvnjgsD+ES1ExvjbjBNqidm9doI=" crossorigin="anonymous"></script>
+
+<script>Cookies.set("locale", "en");</script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mb.YTPlayer/3.2.5/jquery.mb.YTPlayer.min.js"></script>
+
+<script src="/js/lazyframe.min.js"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js" integrity="sha256-pTxD+DSzIwmwhOqTFN+DB+nHjO4iAsbgfyFq5K5bcE0=" crossorigin="anonymous"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js" integrity="sha256-P93G0oq6PBPWTP1IR8Mz/0jHHUpaWL0aBJTKauisG7Q=" crossorigin="anonymous"></script>
+<script>
+    $(function () { $('.img-popup').magnificPopup({ type: 'image', closeOnContentClick: true }); });
+</script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/venobox/1.8.5/venobox.min.js" integrity="sha256-5Yqo+cFc7g7JhoJmIJz3zwPYZg/DqRo4ykbEAtuJ2Gg=" crossorigin="anonymous"></script>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js"></script>
+
+
+
+<script>
+    $(function () { Cookies.remove('flagToContact'); });
+</script>
+
+
+
+<script>$.noConflict(); $ = $.attachReady(jQuery);</script>
+
+<script src="/js/main.js"></script>
+</body>
+</html>
