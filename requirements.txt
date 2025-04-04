@@ -1,0 +1,17 @@
+
+opencv-python==4.10.0.84          # Used for video processing and accessing the phone's camera feed.  
+opencv-contrib-python==4.10.0.84  # Additional OpenCV functionality for extended computer vision tasks.  
+mediapipe==0.10.18                # Used for facial landmark detection to implement the eye-controlled mouse.  
+pyautogui==0.9.54                 # Used for simulating mouse movements and clicks.  
+keyboard==0.13.5                  # Used to toggle the mouse control on and off with a specific key press.  
+
+
+Flask==3.1.0                      # Used for creating a lightweight web server for deployment.  
+Flask-Cors==5.0.0                 # Enables cross-origin requests for a web front end.  
+
+python-dotenv==1.0.1              # Manages environment variables during deployment.  
+Flask-SocketIO==5.4.1
+
+numpy==1.26.4                     # Used for numerical operations, often integrated with OpenCV.  
+jax==0.4.35                       # Hardware-accelerated computation for enhanced performance in processing.  
+jaxlib==0.4.35                    # Backend for JAX computations.  
