@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Mouse with Scrolling</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #C4DAD2;
+            color: #fff;
+
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-size: 40px;
+        }
+
+        p {
+            font-size: 14px;
+            text-align: center;
+        }
+
+        #mouse-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        #mousepad-container {
+            display: flex;
+            width: 90%;
+            height: 50vh;
+            position: relative;
+        }
+
+        #mousepad {
+            flex: 1;
+            background: url("https://s.itl.cat/pngfile/s/99-992191_wallpaper-linear-gradient-green-blue-spring-green-dark.jpg");
+            background-repeat: no-repeat, repeat;
+            background-position: center;
+            background-size: cover;
+
+            border: 2px solid #555;
+            border-radius: 12px;
+            position: relative;
+            cursor: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        #cursor {
+            width: 16px;
+            height: 16px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        #scroll-area {
+            width: 10%; /* Narrow scroll bar */
+            height: 100%; /* Full height */
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, #00ff00, #00aaff, #ffffff); /* Gradient */
+            border-radius: 12px;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            right: -12%; /* Position beside touchpad */
+            padding: 5px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .scroll-arrow {
+            width: 80%;
+            height: 20%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            color: #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .scroll-arrow:hover {
+            background-color: rgba(255, 255, 255, 1); /* Highlight on hover */
+        }
+
+        .scroll-arrow:active {
+            transform: scale(0.9); /* Press effect */
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            gap: 10px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 10px;
+            height:40px;
+            background: linear-gradient(to right, #16423C, #3DBE29);  /* Dark green to parrot green */
+            color: #fff;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .button:hover {
+            background: linear-gradient(45deg, #388e3c, #66bb6a); /* Darker gradient */
+        }
+
+        .button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <h1>WiFi Mouse</h1>
+    <p>Move the touchpad to control the mouse, and use the scroll bar to scroll!</p>
+
+    <div id="mouse-container">
+        <!-- Touchpad and Scroll Area -->
+        <div id="mousepad-container">
+            <div id="mousepad">
+                <div id="cursor"></div>
+            </div>
+            <div id="scroll-area">
+                <div class="scroll-arrow" id="scroll-up">▲</div>
+                <div class="scroll-arrow" id="scroll-down">▼</div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="controls">
+            <button id="leftClick" class="button"></button>
+            <button id="rightClick" class="button"></button>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        const socket = io.connect("http://192.168.239.37:5000"); // Update with your server's IP
+        const mousepad = document.getElementById('mousepad');
+        const cursor = document.getElementById('cursor');
+        const scrollArea = document.getElementById('scroll-area');
+        const rect = mousepad.getBoundingClientRect();
+        const scalingFactor = 7; // Adjust scaling for movement sensitivity
+
+        let currentCursorPosition = { x: 0, y: 0 };
+
+        // Mouse movement
+        function getMousePosition(event) {
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+            return {
+                x: Math.max(0, Math.min(mouseX, rect.width)),
+                y: Math.max(0, Math.min(mouseY, rect.height))
+            };
+        }
+
+        function sendMouseCoordinates(event) {
+            const position = getMousePosition(event);
+            const scaledX = position.x * scalingFactor;
+            const scaledY = position.y * scalingFactor;
+
+            socket.emit('move_mouse', { x: scaledX, y: scaledY });
+
+            cursor.style.left = `${position.x - cursor.offsetWidth / 2}px`;
+            cursor.style.top = `${position.y - cursor.offsetHeight / 2}px`;
+
+            currentCursorPosition = position;
+        }
+
+        mousepad.addEventListener('mousemove', (event) => sendMouseCoordinates(event));
+
+        mousepad.addEventListener('touchmove', (event) => {
+            event.preventDefault();
+            sendMouseCoordinates(event.touches[0]);
+        });
+
+        // Scrolling functionality
+        document.getElementById('scroll-up').addEventListener('click', () => {
+            socket.emit('scroll', { deltaY: -50 }); // Scroll up
+        });
+
+        document.getElementById('scroll-down').addEventListener('click', () => {
+            socket.emit('scroll', { deltaY: 50 }); // Scroll down
+        });
+
+        // Clicking
+        function emitClick(button) {
+            const scaledX = currentCursorPosition.x * scalingFactor;
+            const scaledY = currentCursorPosition.y * scalingFactor;
+            socket.emit('click', { x: scaledX, y: scaledY, button });
+        }
+
+        document.getElementById('leftClick').addEventListener('click', () => emitClick('left'));
+        document.getElementById('rightClick').addEventListener('click', () => emitClick('right'));
+    </script>
+</body>
+</html>

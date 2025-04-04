@@ -1,0 +1,8 @@
+flask==2.0.1
+flask-socketio==5.1.1
+pynput==1.7.3
+pyautogui==0.9.53
+opencv-python==4.5.4.60
+numpy==1.21.2
+python-engineio==4.0.0
+python-socketio==5.0.4
