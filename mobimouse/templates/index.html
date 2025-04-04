@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Mouse with Scrolling</title>
+    <title>WiFi Mouse Control</title>
     <style>
         * {
             margin: 0;
@@ -18,19 +18,19 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #C4DAD2;
-            color: #fff;
-
+            background-color: #20232a;
+            color: white;
         }
 
         h1 {
-            margin-bottom: 30px;
-            font-size: 40px;
+            margin-bottom: 10px;
+            font-size: 36px;
         }
 
         p {
-            font-size: 14px;
+            font-size: 16px;
             text-align: center;
+            margin-bottom: 20px;
         }
 
         #mouse-container {
@@ -51,102 +51,101 @@
         #mousepad {
             flex: 1;
             background: url("https://s.itl.cat/pngfile/s/99-992191_wallpaper-linear-gradient-green-blue-spring-green-dark.jpg");
-            background-repeat: no-repeat, repeat;
+            background-repeat: no-repeat;
             background-position: center;
             background-size: cover;
-
-            border: 2px solid #555;
-            border-radius: 12px;
+            border: 3px solid #3DBE29;
+            border-radius: 15px;
             position: relative;
             cursor: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
         }
 
         #cursor {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             background-color: red;
             border-radius: 50%;
             position: absolute;
             pointer-events: none;
+            transition: transform 0.1s ease-out;
         }
 
         #scroll-area {
-            width: 10%; /* Narrow scroll bar */
-            height: 100%; /* Full height */
+            width: 10%;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            background: linear-gradient(to bottom, #00ff00, #00aaff, #ffffff); /* Gradient */
+            background: linear-gradient(to bottom, #00ff00, #00aaff);
             border-radius: 12px;
             justify-content: space-between;
             align-items: center;
             position: absolute;
             top: 0;
-            right: -12%; /* Position beside touchpad */
+            right: -14%;
             padding: 5px 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
         }
 
         .scroll-arrow {
             width: 80%;
             height: 20%;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
-            color: #444;
+            color: black;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 22px;
             cursor: pointer;
             user-select: none;
-            transition: background-color 0.2s, transform 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
         }
 
         .scroll-arrow:hover {
-            background-color: rgba(255, 255, 255, 1); /* Highlight on hover */
+            background-color: rgba(255, 255, 255, 1);
         }
 
         .scroll-arrow:active {
-            transform: scale(0.9); /* Press effect */
+            transform: scale(0.95);
         }
 
         .controls {
             display: flex;
             justify-content: space-between;
             width: 90%;
-            gap: 10px;
+            gap: 15px;
         }
 
         .button {
             flex: 1;
-            padding: 10px;
-            height:40px;
-            background: linear-gradient(to right, #16423C, #3DBE29);  /* Dark green to parrot green */
-            color: #fff;
+            padding: 12px;
+            background: linear-gradient(to right, #3DBE29, #1B5E20);
+            color: white;
             font-size: 18px;
+            font-weight: bold;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             text-align: center;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
         }
 
         .button:hover {
-            background: linear-gradient(45deg, #388e3c, #66bb6a); /* Darker gradient */
+            background: linear-gradient(to right, #2E7D32, #66BB6A);
         }
 
         .button:active {
-            transform: scale(0.95);
+            transform: scale(0.92);
         }
     </style>
 </head>
 <body>
-    <h1>WiFi Mouse</h1>
-    <p>Move the touchpad to control the mouse, and use the scroll bar to scroll!</p>
+    <h1>WiFi Mouse Control</h1>
+    <p>Move the touchpad to control the mouse, use the scroll bar to scroll!</p>
 
     <div id="mouse-container">
-        <!-- Touchpad and Scroll Area -->
         <div id="mousepad-container">
             <div id="mousepad">
                 <div id="cursor"></div>
@@ -157,72 +156,195 @@
             </div>
         </div>
 
-        <!-- Control Buttons -->
         <div class="controls">
-            <button id="leftClick" class="button"></button>
-            <button id="rightClick" class="button"></button>
+            <button id="leftClick" class="button">Left Click</button>
+            <button id="rightClick" class="button">Right Click</button>
         </div>
     </div>
 
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
-        const socket = io.connect("http://192.168.239.37:5000"); // Update with your server's IP
+        const socket = io.connect("http://192.168.239.37:5000");
         const mousepad = document.getElementById('mousepad');
         const cursor = document.getElementById('cursor');
-        const scrollArea = document.getElementById('scroll-area');
-        const rect = mousepad.getBoundingClientRect();
-        const scalingFactor = 7; // Adjust scaling for movement sensitivity
-
-        let currentCursorPosition = { x: 0, y: 0 };
-
-        // Mouse movement
+        
+        // Enhanced movement parameters
+        const baseSensitivity = 3.5;
+        const acceleration = 1.8;
+        const edgeBoost = 2.0;
+        const maxSpeed = 65;
+        
+        let rect = mousepad.getBoundingClientRect();
+        let currentCursorPosition = { x: rect.width / 2, y: rect.height / 2 };
+        let lastPosition = null;
+        let isTouching = false;
+        
+        // Initialize cursor position
+        updateCursorVisual();
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            rect = mousepad.getBoundingClientRect();
+        });
+        
+        function updateCursorVisual() {
+            cursor.style.transform = `translate(${Math.max(0, Math.min(currentCursorPosition.x - cursor.offsetWidth / 2, rect.width - cursor.offsetWidth))}px, 
+                                    ${Math.max(0, Math.min(currentCursorPosition.y - cursor.offsetHeight / 2, rect.height - cursor.offsetHeight))}px)`;
+        }
+        
         function getMousePosition(event) {
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
             return {
-                x: Math.max(0, Math.min(mouseX, rect.width)),
-                y: Math.max(0, Math.min(mouseY, rect.height))
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
             };
         }
-
-        function sendMouseCoordinates(event) {
-            const position = getMousePosition(event);
-            const scaledX = position.x * scalingFactor;
-            const scaledY = position.y * scalingFactor;
-
-            socket.emit('move_mouse', { x: scaledX, y: scaledY });
-
-            cursor.style.left = `${position.x - cursor.offsetWidth / 2}px`;
-            cursor.style.top = `${position.y - cursor.offsetHeight / 2}px`;
-
-            currentCursorPosition = position;
+        
+        function handleMovement(position) {
+            if (!lastPosition) {
+                lastPosition = position;
+                return;
+            }
+            
+            // Calculate raw movement deltas
+            let deltaX = position.x - lastPosition.x;
+            let deltaY = position.y - lastPosition.y;
+            
+            // Apply acceleration and edge boost
+            const speed = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const speedFactor = Math.min(1 + (speed / 30) * acceleration, 3);
+            
+            const edgeBoostX = (currentCursorPosition.x < rect.width * 0.1 || currentCursorPosition.x > rect.width * 0.9) ? edgeBoost : 1;
+            const edgeBoostY = (currentCursorPosition.y < rect.height * 0.1 || currentCursorPosition.y > rect.height * 0.9) ? edgeBoost : 1;
+            
+            deltaX = deltaX * baseSensitivity * speedFactor * edgeBoostX;
+            deltaY = deltaY * baseSensitivity * speedFactor * edgeBoostY;
+            
+            // Limit maximum speed
+            const currentSpeed = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            if (currentSpeed > maxSpeed) {
+                const ratio = maxSpeed / currentSpeed;
+                deltaX *= ratio;
+                deltaY *= ratio;
+            }
+            
+            // Update server with movement
+            socket.emit('move_mouse', { deltaX, deltaY });
+            
+            // Update visual cursor (1:1 movement for visual feedback)
+            currentCursorPosition.x += deltaX / baseSensitivity;
+            currentCursorPosition.y += deltaY / baseSensitivity;
+            
+            // Keep cursor within bounds
+            currentCursorPosition.x = Math.max(0, Math.min(currentCursorPosition.x, rect.width));
+            currentCursorPosition.y = Math.max(0, Math.min(currentCursorPosition.y, rect.height));
+            
+            updateCursorVisual();
+            lastPosition = position;
         }
-
-        mousepad.addEventListener('mousemove', (event) => sendMouseCoordinates(event));
-
-        mousepad.addEventListener('touchmove', (event) => {
-            event.preventDefault();
-            sendMouseCoordinates(event.touches[0]);
+        
+        // Mouse event handlers
+        mousepad.addEventListener('mousedown', (e) => {
+            isTouching = true;
+            lastPosition = getMousePosition(e);
         });
-
-        // Scrolling functionality
-        document.getElementById('scroll-up').addEventListener('click', () => {
-            socket.emit('scroll', { deltaY: -50 }); // Scroll up
+        
+        mousepad.addEventListener('mousemove', (e) => {
+            if (isTouching && e.buttons === 1) {
+                handleMovement(getMousePosition(e));
+            }
         });
-
-        document.getElementById('scroll-down').addEventListener('click', () => {
-            socket.emit('scroll', { deltaY: 50 }); // Scroll down
+        
+        mousepad.addEventListener('mouseup', () => {
+            isTouching = false;
+            lastPosition = null;
         });
-
-        // Clicking
+        
+        mousepad.addEventListener('mouseleave', () => {
+            if (isTouching) {
+                isTouching = false;
+                lastPosition = null;
+            }
+        });
+        
+        // Touch event handlers
+        mousepad.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isTouching = true;
+            lastPosition = getMousePosition(e.touches[0]);
+        });
+        
+        mousepad.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (isTouching) {
+                handleMovement(getMousePosition(e.touches[0]));
+            }
+        });
+        
+        mousepad.addEventListener('touchend', () => {
+            isTouching = false;
+            lastPosition = null;
+        });
+        
+        // Click handlers
         function emitClick(button) {
-            const scaledX = currentCursorPosition.x * scalingFactor;
-            const scaledY = currentCursorPosition.y * scalingFactor;
-            socket.emit('click', { x: scaledX, y: scaledY, button });
+            socket.emit('click', { button });
         }
-
+        
         document.getElementById('leftClick').addEventListener('click', () => emitClick('left'));
         document.getElementById('rightClick').addEventListener('click', () => emitClick('right'));
+        
+        // Enhanced scroll handling
+        let scrollInterval;
+        let scrollDirection = 0;
+        let scrollSpeed = 0;
+        
+        function startScroll(direction) {
+            scrollDirection = direction;
+            scrollSpeed = 10 * direction; // Initial speed
+            
+            if (!scrollInterval) {
+                scrollInterval = setInterval(() => {
+                    // Accelerate scrolling while button is held
+                    scrollSpeed = Math.min(scrollSpeed * 1.15, 100 * direction);
+                    socket.emit('scroll', { deltaY: scrollSpeed });
+                }, 16); // ~60fps
+            }
+        }
+        
+        function stopScroll() {
+            clearInterval(scrollInterval);
+            scrollInterval = null;
+            scrollSpeed = 0;
+        }
+        
+        // Scroll button event handlers
+        document.getElementById('scroll-up').addEventListener('mousedown', () => startScroll(-1));
+        document.getElementById('scroll-up').addEventListener('mouseup', stopScroll);
+        document.getElementById('scroll-up').addEventListener('mouseleave', stopScroll);
+        document.getElementById('scroll-down').addEventListener('mousedown', () => startScroll(1));
+        document.getElementById('scroll-down').addEventListener('mouseup', stopScroll);
+        document.getElementById('scroll-down').addEventListener('mouseleave', stopScroll);
+        
+        // Touch event handlers for scroll buttons
+        document.getElementById('scroll-up').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startScroll(-1);
+        });
+        
+        document.getElementById('scroll-up').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopScroll();
+        });
+        
+        document.getElementById('scroll-down').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startScroll(1);
+        });
+        
+        document.getElementById('scroll-down').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopScroll();
+        });
     </script>
 </body>
 </html>
