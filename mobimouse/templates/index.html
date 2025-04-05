@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Mouse Control</title>
+    <title>WiFi Mouse Control with Screen Share</title>
     <style>
         * {
             margin: 0;
@@ -50,15 +50,21 @@
 
         #mousepad {
             flex: 1;
-            background: url("https://s.itl.cat/pngfile/s/99-992191_wallpaper-linear-gradient-green-blue-spring-green-dark.jpg");
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: cover;
             border: 3px solid #3DBE29;
             border-radius: 15px;
             position: relative;
             cursor: none;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        #screen-share {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+            z-index: 1;
         }
 
         #cursor {
@@ -68,7 +74,8 @@
             border-radius: 50%;
             position: absolute;
             pointer-events: none;
-            transition: transform 0.1s ease-out;
+            z-index: 3;
+            transition: transform 0.05s linear;
         }
 
         #scroll-area {
@@ -85,6 +92,7 @@
             right: -14%;
             padding: 5px 0;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            z-index: 2;
         }
 
         .scroll-arrow {
@@ -101,14 +109,7 @@
             cursor: pointer;
             user-select: none;
             transition: background-color 0.2s, transform 0.1s;
-        }
-
-        .scroll-arrow:hover {
-            background-color: rgba(255, 255, 255, 1);
-        }
-
-        .scroll-arrow:active {
-            transform: scale(0.95);
+            z-index: 3;
         }
 
         .controls {
@@ -130,24 +131,33 @@
             text-align: center;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
+            z-index: 2;
         }
 
-        .button:hover {
-            background: linear-gradient(to right, #2E7D32, #66BB6A);
+        #screen-share-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
         }
 
-        .button:active {
-            transform: scale(0.92);
+        #screen-share-btn {
+            background: linear-gradient(to right, #4285F4, #34A853);
+        }
+
+        #screen-share-stop {
+            background: linear-gradient(to right, #EA4335, #FBBC05);
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>WiFi Mouse Control</h1>
+    <h1>WiFi Mouse Control with Screen Share</h1>
     <p>Move the touchpad to control the mouse, use the scroll bar to scroll!</p>
 
     <div id="mouse-container">
         <div id="mousepad-container">
             <div id="mousepad">
+                <img id="screen-share" style="display: none;">
                 <div id="cursor"></div>
             </div>
             <div id="scroll-area">
@@ -160,79 +170,66 @@
             <button id="leftClick" class="button">Left Click</button>
             <button id="rightClick" class="button">Right Click</button>
         </div>
+
+        <div id="screen-share-controls">
+            <button id="screen-share-btn" class="button">Start Screen Share</button>
+            <button id="screen-share-stop" class="button">Stop Screen Share</button>
+        </div>
     </div>
 
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script>
-        const socket = io.connect("http://192.168.239.37:5000");
+        const socket = io.connect("http://192.168.128.37:5000");
         const mousepad = document.getElementById('mousepad');
         const cursor = document.getElementById('cursor');
-        
-        // Enhanced movement parameters
-        const baseSensitivity = 3.5;
-        const acceleration = 1.8;
-        const edgeBoost = 2.0;
-        const maxSpeed = 65;
+        const screenShare = document.getElementById('screen-share');
+        const screenShareBtn = document.getElementById('screen-share-btn');
+        const screenShareStop = document.getElementById('screen-share-stop');
         
         let rect = mousepad.getBoundingClientRect();
         let currentCursorPosition = { x: rect.width / 2, y: rect.height / 2 };
         let lastPosition = null;
         let isTouching = false;
-        
+        let screenShareInterval;
+        let stream = null;
+
         // Initialize cursor position
         updateCursorVisual();
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            rect = mousepad.getBoundingClientRect();
-        });
-        
+
         function updateCursorVisual() {
-            cursor.style.transform = `translate(${Math.max(0, Math.min(currentCursorPosition.x - cursor.offsetWidth / 2, rect.width - cursor.offsetWidth))}px, 
-                                    ${Math.max(0, Math.min(currentCursorPosition.y - cursor.offsetHeight / 2, rect.height - cursor.offsetHeight))}px)`;
+            cursor.style.transform = `translate(${currentCursorPosition.x - cursor.offsetWidth / 2}px, 
+                                            ${currentCursorPosition.y - cursor.offsetHeight / 2}px)`;
         }
-        
+
         function getMousePosition(event) {
             return {
                 x: event.clientX - rect.left,
                 y: event.clientY - rect.top
             };
         }
-        
+
         function handleMovement(position) {
             if (!lastPosition) {
                 lastPosition = position;
                 return;
             }
-            
-            // Calculate raw movement deltas
+
             let deltaX = position.x - lastPosition.x;
             let deltaY = position.y - lastPosition.y;
-            
-            // Apply acceleration and edge boost
+
+            // Apply sensitivity and acceleration
             const speed = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            const speedFactor = Math.min(1 + (speed / 30) * acceleration, 3);
+            const speedFactor = Math.min(1 + speed * 0.05, 3);
             
-            const edgeBoostX = (currentCursorPosition.x < rect.width * 0.1 || currentCursorPosition.x > rect.width * 0.9) ? edgeBoost : 1;
-            const edgeBoostY = (currentCursorPosition.y < rect.height * 0.1 || currentCursorPosition.y > rect.height * 0.9) ? edgeBoost : 1;
-            
-            deltaX = deltaX * baseSensitivity * speedFactor * edgeBoostX;
-            deltaY = deltaY * baseSensitivity * speedFactor * edgeBoostY;
-            
-            // Limit maximum speed
-            const currentSpeed = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            if (currentSpeed > maxSpeed) {
-                const ratio = maxSpeed / currentSpeed;
-                deltaX *= ratio;
-                deltaY *= ratio;
-            }
-            
-            // Update server with movement
+            deltaX *= 3 * speedFactor;
+            deltaY *= 3 * speedFactor;
+
+            // Send movement to server
             socket.emit('move_mouse', { deltaX, deltaY });
-            
-            // Update visual cursor (1:1 movement for visual feedback)
-            currentCursorPosition.x += deltaX / baseSensitivity;
-            currentCursorPosition.y += deltaY / baseSensitivity;
+
+            // Update visual cursor
+            currentCursorPosition.x += deltaX / 3;
+            currentCursorPosition.y += deltaY / 3;
             
             // Keep cursor within bounds
             currentCursorPosition.x = Math.max(0, Math.min(currentCursorPosition.x, rect.width));
@@ -241,110 +238,120 @@
             updateCursorVisual();
             lastPosition = position;
         }
-        
-        // Mouse event handlers
+
+        // Event handlers for mouse
         mousepad.addEventListener('mousedown', (e) => {
             isTouching = true;
             lastPosition = getMousePosition(e);
         });
-        
+
         mousepad.addEventListener('mousemove', (e) => {
             if (isTouching && e.buttons === 1) {
                 handleMovement(getMousePosition(e));
             }
         });
-        
+
         mousepad.addEventListener('mouseup', () => {
             isTouching = false;
             lastPosition = null;
         });
-        
-        mousepad.addEventListener('mouseleave', () => {
-            if (isTouching) {
-                isTouching = false;
-                lastPosition = null;
-            }
-        });
-        
-        // Touch event handlers
+
+        // Event handlers for touch
         mousepad.addEventListener('touchstart', (e) => {
             e.preventDefault();
             isTouching = true;
             lastPosition = getMousePosition(e.touches[0]);
         });
-        
+
         mousepad.addEventListener('touchmove', (e) => {
             e.preventDefault();
             if (isTouching) {
                 handleMovement(getMousePosition(e.touches[0]));
             }
         });
-        
+
         mousepad.addEventListener('touchend', () => {
             isTouching = false;
             lastPosition = null;
         });
-        
+
         // Click handlers
         function emitClick(button) {
             socket.emit('click', { button });
         }
-        
+
         document.getElementById('leftClick').addEventListener('click', () => emitClick('left'));
         document.getElementById('rightClick').addEventListener('click', () => emitClick('right'));
-        
-        // Enhanced scroll handling
+
+        // Scroll handlers
         let scrollInterval;
-        let scrollDirection = 0;
         let scrollSpeed = 0;
-        
+
         function startScroll(direction) {
-            scrollDirection = direction;
-            scrollSpeed = 10 * direction; // Initial speed
-            
-            if (!scrollInterval) {
-                scrollInterval = setInterval(() => {
-                    // Accelerate scrolling while button is held
-                    scrollSpeed = Math.min(scrollSpeed * 1.15, 100 * direction);
-                    socket.emit('scroll', { deltaY: scrollSpeed });
-                }, 16); // ~60fps
-            }
+            scrollSpeed = direction * 10;
+            scrollInterval = setInterval(() => {
+                scrollSpeed = Math.min(scrollSpeed * 1.15, direction * 100);
+                socket.emit('scroll', { deltaY: scrollSpeed });
+            }, 16);
         }
-        
+
         function stopScroll() {
             clearInterval(scrollInterval);
-            scrollInterval = null;
             scrollSpeed = 0;
         }
-        
-        // Scroll button event handlers
+
         document.getElementById('scroll-up').addEventListener('mousedown', () => startScroll(-1));
         document.getElementById('scroll-up').addEventListener('mouseup', stopScroll);
-        document.getElementById('scroll-up').addEventListener('mouseleave', stopScroll);
         document.getElementById('scroll-down').addEventListener('mousedown', () => startScroll(1));
         document.getElementById('scroll-down').addEventListener('mouseup', stopScroll);
-        document.getElementById('scroll-down').addEventListener('mouseleave', stopScroll);
-        
-        // Touch event handlers for scroll buttons
-        document.getElementById('scroll-up').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            startScroll(-1);
+
+        // Screen sharing functionality
+        screenShareBtn.addEventListener('click', async () => {
+            try {
+                // Request screen share (this would need server-side implementation)
+                socket.emit('start_screen_share');
+                
+                screenShare.style.display = 'block';
+                screenShareBtn.style.display = 'none';
+                screenShareStop.style.display = 'block';
+                
+                // In a real implementation, you would receive video stream from server
+                // This is just a placeholder for the concept
+                screenShareInterval = setInterval(() => {
+                    socket.emit('request_screen_frame');
+                }, 100);
+                
+            } catch (err) {
+                console.error('Error starting screen share:', err);
+            }
         });
-        
-        document.getElementById('scroll-up').addEventListener('touchend', (e) => {
-            e.preventDefault();
-            stopScroll();
+
+        screenShareStop.addEventListener('click', () => {
+            socket.emit('stop_screen_share');
+            clearInterval(screenShareInterval);
+            screenShare.style.display = 'none';
+            screenShareStop.style.display = 'none';
+            screenShareBtn.style.display = 'block';
         });
-        
-        document.getElementById('scroll-down').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            startScroll(1);
+
+        // Handle incoming screen share updates
+        socket.on('screen_frame', (data) => {
+            // In a real implementation, you would update the screenShare element
+            // with the received frame data
+            // screenShare.src = data.imageUrl;
         });
-        
-        document.getElementById('scroll-down').addEventListener('touchend', (e) => {
-            e.preventDefault();
-            stopScroll();
+         
+        // Add this to your existing Socket.IO code
+    socket.on('screen_frame', function(data) {
+    const screenShare = document.getElementById('screen-share');
+    screenShare.src = 'data:image/jpeg;base64,' + data.image;
+    screenShare.style.display = 'block';
+});
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            rect = mousepad.getBoundingClientRect();
         });
+
     </script>
 </body>
 </html>
