@@ -30,7 +30,7 @@ MobiMouse is a Flask-based application that allows users to control their comput
 2. **Set up a Virtual Environment(in cmd)**
    ```cmd
    python -m venv myenv
-   myenv\Scripts\activate.bat
+   Cursorflow\myenv\Scripts\activate.bat (relative path of activate.bat)
 
 3. **Install Dependencies**
    ```cmd
