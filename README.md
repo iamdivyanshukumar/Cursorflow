@@ -125,24 +125,7 @@ Usage
 
 File Structure:-
 
-Cursorflow/
-├── [app.py](http://vscodecontentref/4)                     # Main application file
-├── requirements.txt           # Dependencies for the project
-├── mobimouse/
-│   ├── [app.py](http://vscodecontentref/5)                 # Submodule for MobiMouse
-│   ├── requirements.txt       # Dependencies for MobiMouse
-│   └── templates/
-│       └── [index.html](http://vscodecontentref/6)         # HTML template for MobiMouse
-├── templates/
-│   ├── [index.html](http://vscodecontentref/7)             # Homepage template
-│   ├── mobi-mouse.html        # MobiMouse page template
-│   ├── vanni.html             # Vanni page template
-│   └── dristi.html            # Dristi page template
-├── static/
-│   ├── css/                   # CSS files for styling
-│   ├── images/                # Images used in the application
-│   └── js/                    # JavaScript files
-└── README.md                  # Documentation file
+<pre><code>Cursorflow/ ├── app.py # Main application file ├── requirements.txt # Dependencies for the project ├── mobimouse/ │ ├── app.py # Submodule for MobiMouse │ ├── requirements.txt # Dependencies for MobiMouse │ └── templates/ │ └── index.html # HTML template for MobiMouse ├── templates/ │ ├── index.html # Homepage template │ ├── mobi-mouse.html # MobiMouse page template │ ├── vanni.html # Vanni page template │ └── dristi.html # Dristi page template ├── static/ │ ├── css/ # CSS files for styling │ ├── images/ # Images used in the application │ └── js/ # JavaScript files └── README.md # Documentation file </code></pre>
 
 Technologies Used
 - Flask: Web framework for the backend.
