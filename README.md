@@ -40,24 +40,28 @@ MobiMouse is a Flask-based application that allows users to control their comput
 4. **For runing mouse change directory**
    ```cmd
    cd mobimouse
+5. Install Dependencies of mobimouse
+   ```cmd
+   pip install -r requirements.txt
+
    
 
-5. **Find Your Local IP Address
+6. **Find Your Local IP Address
 On Windows, open the Command Prompt and run:**
     ```cmd
    ipconfig
 
-6. **Update the Server IP in the Code
+7. **Update the Server IP in the Code
   Open the index.html file located in the templates folder:
   index.html
   Find the line:(use ctrl+f)**
   const socket = io.connect("http://192.168.239.37:5000");
 
-7. **Replace 192.168.239.37 with your computer's IPv4 address from the previous step.**
-8. Run the Application Start the Flask application:
+8. **Replace 192.168.239.37 with your computer's IPv4 address from the previous step.**
+9. Run the Application Start the Flask application:
    ```cmd
    python app.py
-9. Access the Application
+10. Access the Application
 Open your browser on your mobile device or computer and navigate to **http://<your-ip>:5000** (replace <your-ip> with your computer's IPv4 address).
 
 Usage
