@@ -27,7 +27,7 @@ MobiMouse is a Flask-based application that allows users to control their comput
    git clone  https://github.com/iamdivyanshukumar/Cursorflow.git
    cd Cursorflow
 
-2. **Set up a Virtual Environment**
+2. **Set up a Virtual Environment(in cmd)**
    ```cmd
    python -m venv myenv
    myenv\Scripts\activate.bat
