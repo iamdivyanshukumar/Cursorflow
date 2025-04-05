@@ -57,7 +57,7 @@ On Windows, open the Command Prompt and run:**
   Find the line:(use ctrl+f)**
   const socket = io.connect("http://192.168.239.37:5000");
 
-8. **Replace 192.168.239.37 with your computer's IPv4 address from the previous step.**
+8. **Replace 192.168.239.37 with your computer's IPv4 address from the previous step. If it is not working then replace with  Default Gateway**
 9. Run the Application Start the Flask application:
    ```cmd
    python app.py
