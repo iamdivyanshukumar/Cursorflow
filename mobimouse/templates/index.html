@@ -2,167 +2,273 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Mouse Control with Screen Share</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WiFi Mouse Control</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
-            background-color: #20232a;
+            background-color: #1a1a1a;
             color: white;
+            overflow: hidden;
+            touch-action: none;
         }
 
-        h1 {
-            margin-bottom: 10px;
-            font-size: 36px;
+        #screen-container {
+            width: 100%;
+            height: 35vh;
+            background-color: #000;
+            position: relative;
+            border-bottom: 1px solid #3DBE29;
+            overflow: hidden;
         }
 
-        p {
+        #screen-share {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        #screen-cursor {
+            width: 20px;
+            height: 20px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23EA4335"><path d="M12 2L4 22L7 17L12 22L17 17L20 22Z"/></svg>');
+            background-size: contain;
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+            transform-origin: top left;
+            display: none;
+        }
+
+        #screen-status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             font-size: 16px;
+            color: #aaa;
             text-align: center;
-            margin-bottom: 20px;
+            padding: 0 20px;
         }
 
         #mouse-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             width: 100%;
+            height: 65vh;
+            padding: 12px;
         }
 
         #mousepad-container {
-            display: flex;
-            width: 90%;
-            height: 50vh;
+            width: 100%;
+            height: 70%;
             position: relative;
         }
 
         #mousepad {
-            flex: 1;
-            border: 3px solid #3DBE29;
-            border-radius: 15px;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #3DBE29;
+            border-radius: 12px;
             position: relative;
             cursor: none;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+            background-color: #111;
+            touch-action: none;
             overflow: hidden;
         }
 
-        #screen-share {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.7;
-            z-index: 1;
-        }
-
         #cursor {
-            width: 18px;
-            height: 18px;
-            background-color: red;
-            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233DBE29"><path d="M12 2L4 22L7 17L12 22L17 17L20 22Z"/></svg>');
+            background-size: contain;
             position: absolute;
             pointer-events: none;
             z-index: 3;
-            transition: transform 0.05s linear;
+            transform-origin: top left;
         }
 
         #scroll-area {
-            width: 10%;
+            width: 40px;
             height: 100%;
             display: flex;
             flex-direction: column;
-            background: linear-gradient(to bottom, #00ff00, #00aaff);
-            border-radius: 12px;
+            background: rgba(61, 190, 41, 0.2);
+            border-radius: 6px;
             justify-content: space-between;
             align-items: center;
             position: absolute;
             top: 0;
-            right: -14%;
-            padding: 5px 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            z-index: 2;
+            right: 0;
+            padding: 4px 0;
+            border-left: 1px solid #3DBE29;
         }
 
         .scroll-arrow {
-            width: 80%;
-            height: 20%;
-            background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 8px;
-            color: black;
+            width: 32px;
+            height: 32px;
+            background-color: rgba(61, 190, 41, 0.8);
+            border-radius: 50%;
+            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 22px;
+            font-size: 16px;
             cursor: pointer;
             user-select: none;
-            transition: background-color 0.2s, transform 0.1s;
-            z-index: 3;
+            margin: 4px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .controls {
             display: flex;
             justify-content: space-between;
-            width: 90%;
-            gap: 15px;
+            width: 100%;
+            gap: 8px;
         }
 
         .button {
             flex: 1;
-            padding: 12px;
+            padding: 14px 8px;
             background: linear-gradient(to right, #3DBE29, #1B5E20);
             color: white;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: 600;
             border: none;
-            border-radius: 10px;
-            text-align: center;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            z-index: 2;
+            transition: all 0.15s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        #screen-share-controls {
-            margin-top: 15px;
+        .button:active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+
+        #screen-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            width: 100%;
         }
 
         #screen-share-btn {
-            background: linear-gradient(to right, #4285F4, #34A853);
+            background: linear-gradient(to right, #3DBE29, #1B5E20);
         }
 
         #screen-share-stop {
             background: linear-gradient(to right, #EA4335, #FBBC05);
             display: none;
         }
+
+        #stats {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-size: 11px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 11px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        #keyboardInput {
+            opacity: 0;
+            height: 0;
+            width: 0;
+            padding: 0;
+            margin: 0;
+            border: 0;
+        }
+
+        .keyboard-active {
+            background: linear-gradient(to right, #FBBC05, #EA4335) !important;
+        }
+
+        @media (max-width: 500px) {
+            #screen-container {
+                height: 30vh;
+            }
+            
+            #mouse-container {
+                height: 70vh;
+                padding: 10px;
+            }
+            
+            .button {
+                padding: 12px 6px;
+                font-size: 14px;
+            }
+            
+            #scroll-area {
+                width: 36px;
+            }
+            
+            .scroll-arrow {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #screen-container {
+                height: 28vh;
+            }
+            
+            #mouse-container {
+                height: 72vh;
+                padding: 8px;
+            }
+            
+            .button {
+                padding: 10px 5px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>WiFi Mouse Control with Screen Share</h1>
-    <p>Move the touchpad to control the mouse, use the scroll bar to scroll!</p>
+    <div id="screen-container">
+        <img id="screen-share">
+        <div id="screen-cursor"></div>
+        <div id="screen-status">Screen sharing will appear here when activated</div>
+        <div class="connection-status" id="connection-status">Disconnected</div>
+    </div>
 
     <div id="mouse-container">
         <div id="mousepad-container">
             <div id="mousepad">
-                <img id="screen-share" style="display: none;">
                 <div id="cursor"></div>
-            </div>
-            <div id="scroll-area">
-                <div class="scroll-arrow" id="scroll-up">▲</div>
-                <div class="scroll-arrow" id="scroll-down">▼</div>
+                <div id="scroll-area">
+                    <div class="scroll-arrow" id="scroll-up">↑</div>
+                    <div class="scroll-arrow" id="scroll-down">↓</div>
+                </div>
             </div>
         </div>
 
@@ -171,40 +277,87 @@
             <button id="rightClick" class="button">Right Click</button>
         </div>
 
-        <div id="screen-share-controls">
-            <button id="screen-share-btn" class="button">Start Screen Share</button>
-            <button id="screen-share-stop" class="button">Stop Screen Share</button>
+        <div class="controls">
+            <button id="keyboardToggle" class="button">Virtual Keyboard</button>
         </div>
+
+        <div id="screen-controls">
+            <button id="screen-share-btn" class="button">Start Screen Share</button>
+            <button id="screen-share-stop" class="button">Stop Sharing</button>
+        </div>
+
+        <input type="text" id="keyboardInput" style="position: absolute; left: -9999px;">
     </div>
 
+    <div id="stats"></div>
+
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
     <script>
-        const socket = io.connect("http://192.168.128.37:5000");
+        const socket = io.connect(window.location.origin);
         const mousepad = document.getElementById('mousepad');
         const cursor = document.getElementById('cursor');
+        const screenCursor = document.getElementById('screen-cursor');
         const screenShare = document.getElementById('screen-share');
+        const screenStatus = document.getElementById('screen-status');
         const screenShareBtn = document.getElementById('screen-share-btn');
         const screenShareStop = document.getElementById('screen-share-stop');
+        const statsElement = document.getElementById('stats');
+        const connectionStatus = document.getElementById('connection-status');
+        const keyboardToggle = document.getElementById('keyboardToggle');
+        const keyboardInput = document.getElementById('keyboardInput');
         
+        // Performance tracking
+        let frameTimes = [];
+        let lastFrameTime = 0;
+        let fps = 0;
+        
+        // Mouse control variables
         let rect = mousepad.getBoundingClientRect();
         let currentCursorPosition = { x: rect.width / 2, y: rect.height / 2 };
         let lastPosition = null;
         let isTouching = false;
-        let screenShareInterval;
-        let stream = null;
+        let screenCursorVisible = false;
+        let keyboardActive = false;
 
-        // Initialize cursor position
-        updateCursorVisual();
+        // Connection status
+        socket.on('connect', () => {
+            connectionStatus.textContent = 'Connected';
+            connectionStatus.style.color = '#3DBE29';
+        });
 
-        function updateCursorVisual() {
-            cursor.style.transform = `translate(${currentCursorPosition.x - cursor.offsetWidth / 2}px, 
-                                            ${currentCursorPosition.y - cursor.offsetHeight / 2}px)`;
+        socket.on('disconnect', () => {
+            connectionStatus.textContent = 'Disconnected';
+            connectionStatus.style.color = '#EA4335';
+        });
+
+        // Initialize cursor
+        updateCursorPosition();
+
+        function updateCursorPosition() {
+            cursor.style.transform = `translate(${currentCursorPosition.x}px, ${currentCursorPosition.y}px)`;
+            
+            // Update screen cursor position proportionally
+            if (screenShare.offsetWidth > 0 && screenShare.offsetHeight > 0) {
+                const xRatio = screenShare.offsetWidth / rect.width;
+                const yRatio = screenShare.offsetHeight / rect.height;
+                const screenX = currentCursorPosition.x * xRatio;
+                const screenY = currentCursorPosition.y * yRatio;
+                
+                screenCursor.style.transform = `translate(${screenX}px, ${screenY}px)`;
+                
+                if (!screenCursorVisible) {
+                    screenCursor.style.display = 'block';
+                    screenCursorVisible = true;
+                }
+            }
         }
 
-        function getMousePosition(event) {
+        function getPosition(event) {
+            const touchEvent = event.touches ? event.touches[0] : event;
             return {
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top
+                x: touchEvent.clientX - rect.left,
+                y: touchEvent.clientY - rect.top
             };
         }
 
@@ -214,40 +367,42 @@
                 return;
             }
 
-            let deltaX = position.x - lastPosition.x;
-            let deltaY = position.y - lastPosition.y;
-
-            // Apply sensitivity and acceleration
+            const deltaX = position.x - lastPosition.x;
+            const deltaY = position.y - lastPosition.y;
+            
+            // Apply acceleration
             const speed = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            const speedFactor = Math.min(1 + speed * 0.05, 3);
+            const factor = Math.min(1 + speed * 0.5, 3);
             
-            deltaX *= 3 * speedFactor;
-            deltaY *= 3 * speedFactor;
+            const adjustedDeltaX = deltaX * 2.5 * factor;
+            const adjustedDeltaY = deltaY * 2.5 * factor;
 
-            // Send movement to server
-            socket.emit('move_mouse', { deltaX, deltaY });
+            socket.emit('move_mouse', { 
+                deltaX: adjustedDeltaX, 
+                deltaY: adjustedDeltaY 
+            });
 
-            // Update visual cursor
-            currentCursorPosition.x += deltaX / 3;
-            currentCursorPosition.y += deltaY / 3;
+            // Update local cursor
+            currentCursorPosition.x += deltaX;
+            currentCursorPosition.y += deltaY;
             
-            // Keep cursor within bounds
+            // Boundary check
             currentCursorPosition.x = Math.max(0, Math.min(currentCursorPosition.x, rect.width));
             currentCursorPosition.y = Math.max(0, Math.min(currentCursorPosition.y, rect.height));
             
-            updateCursorVisual();
+            updateCursorPosition();
             lastPosition = position;
         }
 
-        // Event handlers for mouse
+        // Mouse/touch event handlers
         mousepad.addEventListener('mousedown', (e) => {
             isTouching = true;
-            lastPosition = getMousePosition(e);
+            lastPosition = getPosition(e);
         });
 
         mousepad.addEventListener('mousemove', (e) => {
             if (isTouching && e.buttons === 1) {
-                handleMovement(getMousePosition(e));
+                handleMovement(getPosition(e));
             }
         });
 
@@ -256,17 +411,16 @@
             lastPosition = null;
         });
 
-        // Event handlers for touch
         mousepad.addEventListener('touchstart', (e) => {
             e.preventDefault();
             isTouching = true;
-            lastPosition = getMousePosition(e.touches[0]);
+            lastPosition = getPosition(e);
         });
 
         mousepad.addEventListener('touchmove', (e) => {
             e.preventDefault();
             if (isTouching) {
-                handleMovement(getMousePosition(e.touches[0]));
+                handleMovement(getPosition(e));
             }
         });
 
@@ -276,82 +430,175 @@
         });
 
         // Click handlers
-        function emitClick(button) {
-            socket.emit('click', { button });
-        }
+        document.getElementById('leftClick').addEventListener('click', () => {
+            socket.emit('click', { button: 'left' });
+            // Visual feedback
+            flashCursor('#3DBE29');
+        });
 
-        document.getElementById('leftClick').addEventListener('click', () => emitClick('left'));
-        document.getElementById('rightClick').addEventListener('click', () => emitClick('right'));
+        document.getElementById('rightClick').addEventListener('click', () => {
+            socket.emit('click', { button: 'right' });
+            // Visual feedback
+            flashCursor('#EA4335');
+        });
+
+        function flashCursor(color) {
+            const originalColor = cursor.style.backgroundImage;
+            cursor.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${encodeURIComponent(color)}"><path d="M12 2L4 22L7 17L12 22L17 17L20 22Z"/></svg>')`;
+            setTimeout(() => {
+                cursor.style.backgroundImage = originalColor;
+            }, 200);
+        }
 
         // Scroll handlers
-        let scrollInterval;
-        let scrollSpeed = 0;
+        document.getElementById('scroll-up').addEventListener('mousedown', () => {
+            socket.emit('scroll', { deltaY: -50 });
+            flashScrollButton('scroll-up');
+        });
 
-        function startScroll(direction) {
-            scrollSpeed = direction * 10;
-            scrollInterval = setInterval(() => {
-                scrollSpeed = Math.min(scrollSpeed * 1.15, direction * 100);
-                socket.emit('scroll', { deltaY: scrollSpeed });
-            }, 16);
+        document.getElementById('scroll-down').addEventListener('mousedown', () => {
+            socket.emit('scroll', { deltaY: 50 });
+            flashScrollButton('scroll-down');
+        });
+
+        // Touch scroll handlers for mobile
+        document.getElementById('scroll-up').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            socket.emit('scroll', { deltaY: -50 });
+            flashScrollButton('scroll-up');
+        });
+
+        document.getElementById('scroll-down').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            socket.emit('scroll', { deltaY: 50 });
+            flashScrollButton('scroll-down');
+        });
+
+        function flashScrollButton(id) {
+            const button = document.getElementById(id);
+            button.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+            setTimeout(() => {
+                button.style.backgroundColor = 'rgba(61, 190, 41, 0.8)';
+            }, 200);
         }
 
-        function stopScroll() {
-            clearInterval(scrollInterval);
-            scrollSpeed = 0;
-        }
-
-        document.getElementById('scroll-up').addEventListener('mousedown', () => startScroll(-1));
-        document.getElementById('scroll-up').addEventListener('mouseup', stopScroll);
-        document.getElementById('scroll-down').addEventListener('mousedown', () => startScroll(1));
-        document.getElementById('scroll-down').addEventListener('mouseup', stopScroll);
-
-        // Screen sharing functionality
-        screenShareBtn.addEventListener('click', async () => {
-            try {
-                // Request screen share (this would need server-side implementation)
-                socket.emit('start_screen_share');
-                
-                screenShare.style.display = 'block';
-                screenShareBtn.style.display = 'none';
-                screenShareStop.style.display = 'block';
-                
-                // In a real implementation, you would receive video stream from server
-                // This is just a placeholder for the concept
-                screenShareInterval = setInterval(() => {
-                    socket.emit('request_screen_frame');
-                }, 100);
-                
-            } catch (err) {
-                console.error('Error starting screen share:', err);
+        // Keyboard handlers
+        keyboardToggle.addEventListener('click', () => {
+            keyboardActive = !keyboardActive;
+            
+            if (keyboardActive) {
+                keyboardToggle.classList.add('keyboard-active');
+                keyboardInput.focus();
+            } else {
+                keyboardToggle.classList.remove('keyboard-active');
+                keyboardInput.blur();
             }
+        });
+
+        keyboardInput.addEventListener('input', (e) => {
+            if (keyboardActive) {
+                socket.emit('keyboard_input', { text: e.target.value });
+                e.target.value = ''; // Clear after sending
+            }
+        });
+
+        keyboardInput.addEventListener('keydown', (e) => {
+            if (keyboardActive) {
+                // Handle special keys
+                if (e.key === 'Enter') {
+                    socket.emit('keyboard_key', { key: 'enter' });
+                } else if (e.key === 'Backspace') {
+                    socket.emit('keyboard_key', { key: 'backspace' });
+                } else if (e.key === ' ') {
+                    socket.emit('keyboard_key', { key: 'space' });
+                } else if (e.key === 'Tab') {
+                    e.preventDefault();
+                    socket.emit('keyboard_key', { key: 'tab' });
+                } else if (e.key === 'Escape') {
+                    socket.emit('keyboard_key', { key: 'escape' });
+                }
+            }
+        });
+
+        // Screen sharing controls
+        screenShareBtn.addEventListener('click', () => {
+            socket.emit('start_screen_share');
+            screenShare.style.display = 'block';
+            screenStatus.style.display = 'none';
+            screenShareBtn.style.display = 'none';
+            screenShareStop.style.display = 'block';
+            screenCursor.style.display = 'block';
+            screenCursorVisible = true;
         });
 
         screenShareStop.addEventListener('click', () => {
             socket.emit('stop_screen_share');
-            clearInterval(screenShareInterval);
             screenShare.style.display = 'none';
+            screenStatus.style.display = 'block';
             screenShareStop.style.display = 'none';
             screenShareBtn.style.display = 'block';
+            screenCursor.style.display = 'none';
+            screenCursorVisible = false;
         });
 
-        // Handle incoming screen share updates
+        // Screen share frame processing
         socket.on('screen_frame', (data) => {
-            // In a real implementation, you would update the screenShare element
-            // with the received frame data
-            // screenShare.src = data.imageUrl;
+            const now = performance.now();
+            
+            // Calculate FPS
+            if (lastFrameTime > 0) {
+                frameTimes.push(now - lastFrameTime);
+                if (frameTimes.length > 10) frameTimes.shift();
+                fps = Math.round(1000 / (frameTimes.reduce((a, b) => a + b) / frameTimes.length));
+            }
+            lastFrameTime = now;
+            
+            // Process frame
+            try {
+                let imageData;
+                if (data.compressed) {
+                    const compressedData = base64ToArrayBuffer(data.image);
+                    imageData = pako.inflate(compressedData);
+                } else {
+                    imageData = base64ToArrayBuffer(data.image);
+                }
+                
+                const blob = new Blob([imageData], { type: 'image/jpeg' });
+                const url = URL.createObjectURL(blob);
+                
+                screenShare.onload = () => {
+                    URL.revokeObjectURL(url);
+                    updateStats(fps, data.quality, data.timestamp);
+                    updateCursorPosition(); // Update screen cursor position after new frame loads
+                };
+                
+                screenShare.src = url;
+            } catch (error) {
+                console.error('Frame processing error:', error);
+            }
         });
-         
-        // Add this to your existing Socket.IO code
-    socket.on('screen_frame', function(data) {
-    const screenShare = document.getElementById('screen-share');
-    screenShare.src = 'data:image/jpeg;base64,' + data.image;
-    screenShare.style.display = 'block';
-});
-        // Handle window resize
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        function updateStats(currentFps, quality, serverTime) {
+            const latency = Math.round((performance.now()/1000 - serverTime) * 1000);
+            statsElement.textContent = `FPS: ${currentFps} | Q: ${quality}% | ${latency}ms`;
+        }
+
+        // Handle resize
         window.addEventListener('resize', () => {
             rect = mousepad.getBoundingClientRect();
         });
 
+        // Initial setup
+        window.dispatchEvent(new Event('resize'));
     </script>
 </body>
 </html>
