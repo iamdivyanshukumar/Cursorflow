@@ -1,11 +1,4 @@
-# CursorFlow
-
-CursorFlow is a web-based application that combines the functionalities of two innovative mouse control systems: **Dristi Mouse** and **MobiMouse**. It provides accessibility solutions for hands-free and remote mouse control, making it ideal for individuals with mobility challenges or those who want to control their computer remotely.
-
----
-
-# AI_MobilePointer
-**GitHub Repository:** https://github.com/iamdivyanshukumar/AI_MobilePointer.git₹
+# WiFi Mouse Control & AI Assistant
 
 A powerful remote control application that transforms your mobile device into a wireless mouse, keyboard, and AI-powered assistant for your computer. Control your desktop remotely with screen sharing capabilities and get AI-powered insights about your screen content.
 
@@ -110,20 +103,20 @@ python app.py
 
 ### Desktop Dashboard
 <p align="center">
-  <img src="AI_MobilePointer/assets/images/Desktop_img.png" width="50%">
+  <img src="assets\images\Desktop_img.png" width="50%">
 </p>
 
 ### Mobile Remote Interface
 <p align="center">
-  <img src="AI_MobilePointer/assets/images/mobile_01.jpg" width="30%">
-  <img src="AI_MobilePointer/assets/images/mobile_02.jpg" width="30%">
-  <img src="AI_MobilePointer/assets/images/mobile_03.jpg" width="30%">
+  <img src="assets\images\mobile_01.jpg" width="30%">
+  <img src="assets\images\mobile_02.jpg" width="30%">
+  <img src="assets\images\mobile_03.jpg" width="30%">
 </p>
 <p align="center">
-  <img src="AI_MobilePointer/assets/images/mobile_04.jpg" width="30%">
-  <img src="AI_MobilePointer/assets/images/mobile_05.jpg" width="30%">
-  <img src="AI_MobilePointer/assets/images/mobile_06.jpg" width="30%">
-  <img src="AI_MobilePointer/assets/images/mobile_07.jpg" width="30%">
+  <img src="assets\images\mobile_04.jpg" width="30%">
+  <img src="assets\images\mobile_05.jpg" width="30%">
+  <img src="assets\images\mobile_06.jpg" width="30%">
+  <img src="assets\images\mobile_07.jpg" width="30%">
 </p>
 
 
@@ -221,83 +214,3 @@ Solution: Allow port 5000 through firewall and check server IP
 - Tesseract OCR – for text extraction
 - Flask and SocketIO – for the web framework
 - FAISS – for vector similarity search
-
-
-## Dristi Mouse:-
-
-Dristi Mouse is an innovative hands-free mouse control system that uses eye and head gestures to control the cursor. It is designed to provide accessibility solutions for individuals with mobility challenges or anyone looking for a hands-free way to interact with their computer.
-
-Features
-- Eye-Controlled Mouse Movement: Move the cursor using eye and head gestures.
-Blink Detection for Clicks: Double blink to simulate a mouse click.
-
-- Head Movement for Navigation: Control the cursor by moving your head.
-
-- Mouth Open-Close Toggle: Pause or resume cursor control with mouth gestures.
-
-- Customizable Sensitivity: Adjust thresholds for eye and head movements to suit your needs.
-
-Prerequisites:-
-
-- Python 3.8 or higher
-- pip (Python package manager)
-- A webcam for eye and head tracking
-- Mediapipe and OpenCV libraries for facial landmark detection and image processing
-
-Installation Process
-
-1. For running cursorflow(Dristi mouse)
-   ```bash
-   cd..
-
-3. Run the Application Start the application:
-python [app.py](http://vscodecontentref/3)
-
-4. Access the Application
-
-Open your browser and navigate to http://localhost:5000.
-
-4. Use the Dristi Mouse
-
-- Go to the CursorFlow website.
-- At the top, you will see a Buy option under which the Dristi Mouse is listed.
-- Click on it, and you will be redirected to another page.
-- On this page, you will see two options: Start Tracking and Stop Tracking.
-- Click on Start Tracking to activate the Dristi Mouse and enjoy hands-free control.
-
-Usage
-- Eye-Controlled Cursor Movement: The application uses Mediapipe's face mesh to track eye and head movements. Move your head or eyes to control the cursor's position on the screen.
-
-- Blink Detection for Clicks: Double blink to simulate a left mouse click. Long blink (hold for 0.5 seconds) to simulate a right mouse click.
-
-- Mouth Open-Close Toggle: Open your mouth to pause cursor movement. Close your mouth to resume cursor movement.
-
-- Head Movement for Navigation: Move your head left, right, up, or down to navigate the screen.
-
-File Structure:-
-
-<pre><code>Cursorflow/ ├── app.py # Main application file ├── requirements.txt # Dependencies for the project ├── mobimouse/ │ ├── app.py # Submodule for MobiMouse │ ├── requirements.txt # Dependencies for MobiMouse │ └── templates/ │ └── index.html # HTML template for MobiMouse ├── templates/ │ ├── index.html # Homepage template │ ├── mobi-mouse.html # MobiMouse page template │ ├── vanni.html # Vanni page template │ └── dristi.html # Dristi page template ├── static/ │ ├── css/ # CSS files for styling │ ├── images/ # Images used in the application │ └── js/ # JavaScript files └── README.md # Documentation file </code></pre>
-
-Technologies Used
-- Flask: Web framework for the backend.
-- Flask-SocketIO: Real-time communication between the server and client.
-- Mediapipe: Facial landmark detection for Dristi.
-- OpenCV: Image processing for Dristi.
-- PyAutoGUI: Simulate mouse movements, clicks, and scrolling.
-- Pynput: Low-level control of the mouse for MobiMouse.
-- MSS: Screen capturing for MobiMouse's screen sharing.
-
-Important Notes
-- Same Wi-Fi Network: Ensure that both your computer and mobile device are connected to the same Wi-Fi network for MobiMouse to work.
-
-- Webcam Requirement: A webcam is required for Dristi's eye and head tracking features.
-
-- Lighting Conditions: Ensure proper lighting for accurate facial landmark detection.
-
-License
-This project is licensed under the MIT License.
-
-Contact
-For any queries or support, contact us at
- - Email: divyanshussa@gmail.com
- - Phone Number- 6397766117

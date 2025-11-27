@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WiFi Mouse Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --info: #3b82f6;
+            --info-dark: #2563eb;
+            --success: #10b981;
+            --success-dark: #059669;
+            
+            --bg-dark: #111827;
+            --bg-darker: #0f172a;
+            --bg-light: #f3f4f6;
+            --bg-lighter: #f9fafb;
+            
+            --text-dark: #1f2937;
+            --text-light: #f9fafb;
+            --text-muted: #9ca3af;
+            
+            --border-dark: #1e293b;
+            --border-light: #e5e7eb;
+            
+            --panel-bg-dark: #1e293b;
+            --panel-bg-light: #ffffff;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            --transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        body.light-theme {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        /* Main layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Screen container */
+        #screen-container {
+            width: 100%;
+            height: 35vh;
+            background-color: var(--panel-bg-dark);
+            position: relative;
+            border-bottom: 1px solid var(--primary);
+            overflow: hidden;
+            touch-action: pan-y pinch-zoom;
+        }
+
+        .light-theme #screen-container {
+            background-color: var(--panel-bg-light);
+            border-bottom: 1px solid var(--primary-light);
+        }
+
+        #screen-share {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            transition: opacity 0.2s ease;
+            opacity: 0;
+            image-rendering: -webkit-optimize-contrast;
+            transform-origin: 0 0;
+        }
+
+        #screen-cursor {
+            width: 20px;
+            height: 20px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ef4444"><path d="M12 2L4 22L7 17L12 22L17 17L20 22Z"/></svg>');
+            background-size: contain;
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+            transform-origin: top left;
+            display: none;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.7));
+        }
+
+        #screen-status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        /* Connection status */
+        .connection-status {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 11px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-family: monospace;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .connection-status.connected {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .connection-status.connecting {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .connection-status.disconnected {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.connected {
+            background-color: var(--success);
+        }
+
+        .status-dot.connecting {
+            background-color: var(--warning);
+        }
+
+        .status-dot.disconnected {
+            background-color: var(--danger);
+        }
+
+        /* Tab bar */
+        .tab-bar {
+            display: flex;
+            width: 100%;
+            background-color: var(--panel-bg-dark);
+            border-bottom: 1px solid var(--border-dark);
+        }
+
+        .light-theme .tab-bar {
+            background-color: var(--panel-bg-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .light-theme .tab {
+            color: var(--text-muted);
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .light-theme .tab.active {
+            color: var(--text-dark);
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            height: calc(100% - 45px);
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Mouse control section */
+        #mousepad-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            flex-grow: 1;
+        }
+
+        #mousepad {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            position: relative;
+            cursor: none;
+            background-color: var(--panel-bg-dark);
+            touch-action: none;
+            overflow: hidden;
+        }
+
+        .light-theme #mousepad {
+            background-color: var(--panel-bg-light);
+        }
+
+        #cursor {
+            width: 24px;
+            height: 24px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234f46e5"><path d="M12 2L4 22L7 17L12 22L17 17L20 22Z"/></svg>');
+            background-size: contain;
+            position: absolute;
+            pointer-events: none;
+            z-index: 3;
+            transform-origin: top left;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.7));
+        }
+
+        #scroll-area {
+            width: 40px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 6px;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 4px 0;
+            border-left: 1px solid var(--primary);
+        }
+
+        .scroll-arrow {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            user-select: none;
+            margin: 4px 0;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .scroll-arrow:active {
+            transform: scale(0.9);
+            background-color: var(--primary-dark);
+        }
+
+        /* Controls section */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 14px 8px;
+            background: var(--primary);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .button:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow);
+        }
+
+        .button:active {
+            transform: scale(0.96);
+        }
+
+        .button-secondary {
+            background: var(--secondary);
+        }
+
+        .button-secondary:hover {
+            background: var(--secondary-dark);
+        }
+
+        .button-danger {
+            background: var(--danger);
+        }
+
+        .button-danger:hover {
+            background: var(--danger-dark);
+        }
+
+        .button-warning {
+            background: var(--warning);
+        }
+
+        .button-warning:hover {
+            background: var(--warning-dark);
+        }
+
+        .button-info {
+            background: var(--info);
+        }
+
+        .button-info:hover {
+            background: var(--info-dark);
+        }
+
+        .button-success {
+            background: var(--success);
+        }
+
+        .button-success:hover {
+            background: var(--success-dark);
+        }
+
+        .button-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .light-theme .button-outline {
+            color: var(--primary-dark);
+        }
+
+        .button-outline:hover {
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        /* Media controls */
+        #media-controls {
+            display: none;
+            width: 100%;
+            gap: 8px;
+        }
+
+        #media-controls.active {
+            display: flex;
+        }
+
+        /* Touchpad hints */
+        .touchpad-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            height: 60px;
+            background-color: rgba(79, 70, 229, 0.1);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--primary);
+            font-size: 14px;
+            text-align: center;
+            padding: 0 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .light-theme .touchpad-hint {
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+
+        /* Visual feedback */
+        .double-tap-indicator {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(79, 70, 229, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+            transform: translate(-50%, -50%);
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: translate(-50%, -50%) scale(0.1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* Settings panel */
+        #settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--panel-bg-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 200;
+            display: none;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .light-theme #settings-panel {
+            background-color: var(--panel-bg-light);
+            border: 1px solid var(--border-light);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .settings-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .light-theme .settings-title {
+            color: var(--text-dark);
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .settings-close:hover {
+            color: var(--danger);
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .settings-label {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .light-theme .settings-label {
+            color: var(--text-dark);
+        }
+
+        .settings-value {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--border-dark);
+            outline: none;
+            margin: 10px 0;
+        }
+
+        .light-theme .slider {
+            background: var(--border-light);
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .slider::-moz-range-thumb:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        /* Toggle switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-switch {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-dark);
+            transition: var(--transition);
+            border-radius: 24px;
+        }
+
+        .light-theme .slider-switch {
+            background-color: var(--border-light);
+        }
+
+        .slider-switch:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: var(--transition);
+            border-radius: 50%;
+        }
+
+        input:checked + .slider-switch {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider-switch:before {
+            transform: translateX(26px);
+        }
+
+        /* Stats overlay */
+        #stats {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-size: 11px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-family: monospace;
+            color: white;
+        }
+
+        /* Authentication modal */
+        #auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            backdrop-filter: blur(5px);
+        }
+
+        .auth-card {
+            background-color: var(--panel-bg-dark);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .light-theme .auth-card {
+            background-color: var(--panel-bg-light);
+        }
+
+        .auth-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-light);
+        }
+
+        .light-theme .auth-title {
+            color: var(--text-dark);
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 10px 0;
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            background-color: var(--bg-darker);
+            color: var(--text-light);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .light-theme .auth-input {
+            background-color: var(--bg-lighter);
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+
+        .auth-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px 0;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        .auth-button:hover {
+            background: var(--primary-dark);
+        }
+
+        .auth-button-secondary {
+            background: transparent;
+            border: 1px solid var(--border-dark);
+            color: var(--text-light);
+        }
+
+        .light-theme .auth-button-secondary {
+            border: 1px solid var(--border-light);
+            color: var(--text-dark);
+        }
+
+        .auth-button-secondary:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .auth-footer {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .pairing-code {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(79, 70, 229, 0.2);
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 8px;
+        }
+
+        /* AI Assistant Styles */
+        #ai-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--panel-bg-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 200;
+            display: none;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .light-theme #ai-panel {
+            background-color: var(--panel-bg-light);
+            border: 1px solid var(--border-light);
+        }
+
+        #ai-assistant-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            background: var(--success);
+            border: none;
+            color: white;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+        }
+
+        #ai-assistant-btn:hover {
+            background: var(--success-dark);
+            transform: scale(1.1);
+        }
+
+        #ai-results {
+            background: var(--bg-darker);
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            display: none;
+        }
+
+        #ai-output {
+            color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        #ai-status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 500px) {
+            #screen-container {
+                height: 30vh;
+            }
+            
+            .tab {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .button {
+                padding: 12px 6px;
+                font-size: 14px;
+            }
+            
+            #scroll-area {
+                width: 36px;
+            }
+            
+            .scroll-arrow {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+
+            #ai-panel {
+                width: 95%;
+                padding: 15px;
+            }
+
+            #ai-assistant-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #screen-container {
+                height: 28vh;
+            }
+            
+            .tab {
+                padding: 8px;
+                font-size: 13px;
+            }
+            
+            .button {
+                padding: 10px 5px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Modal -->
+    <div id="auth-modal">
+        <div class="auth-card">
+            <h2 class="auth-title">Authentication Required</h2>
+            <p class="auth-subtitle">Please enter the password or pairing code to connect</p>
+            
+            <input type="password" id="auth-password" class="auth-input" placeholder="Password" autofocus>
+            <button id="auth-submit" class="auth-button">Connect</button>
+            
+            <div class="auth-footer">
+                <p>Or use pairing code:</p>
+                <div class="pairing-code" id="pairing-code-display"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Interface -->
+    <div class="app-container" style="display: none;">
+        <!-- Screen Sharing Section -->
+        <div id="screen-container">
+            <img id="screen-share">
+            <div id="screen-cursor"></div>
+            <div id="screen-status">Screen sharing will appear here when activated</div>
+            <div class="connection-status disconnected" id="connection-status">
+                <div class="status-dot disconnected"></div>
+                <span>Disconnected</span>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-bar">
+            <div class="tab active" data-tab="mouse">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L4 22L7 17L12 22L17 17L20 22L12 2Z" fill="currentColor"/>
+                </svg>
+                <span>Mouse</span>
+            </div>
+            <div class="tab" data-tab="media">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 16V8L17 12L9 16Z" fill="currentColor"/>
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Media</span>
+            </div>
+            <div class="tab" data-tab="controls">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="currentColor"/>
+                    <path d="M19.4 15C19.2669 15.3016 19.227 15.6362 19.2857 15.9606C19.3443 16.285 19.4989 16.5834 19.7266 16.8114C19.9543 17.0393 20.2526 17.1941 20.5769 17.2529C20.9012 17.3117 21.2357 17.2719 21.5372 17.1389C21.8387 17.0059 22.0924 16.786 22.2635 16.5096C22.4346 16.2332 22.5145 15.9138 22.4927 15.5934C22.4709 15.273 22.3483 14.9677 22.1421 14.7196C21.936 14.4715 21.6565 14.2934 21.3432 14.2099C21.0299 14.1264 20.6986 14.1416 20.3942 14.2536" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M19.4 15C19.5331 14.6984 19.573 14.3638 19.5143 14.0394C19.4557 13.715 19.3011 13.4166 19.0734 13.1886C18.8457 12.9607 18.5474 12.8059 18.2231 12.7471C17.8988 12.6883 17.5643 12.7281 17.2628 12.8611C16.9613 12.9941 16.7076 13.214 16.5365 13.4904C16.3654 13.7668 16.2855 14.0862 16.3073 14.4066C16.3291 14.727 16.4517 15.0323 16.6579 15.2804C16.864 15.5285 17.1435 15.7066 17.4568 15.7901C17.7701 15.8736 18.1014 15.8584 18.4058 15.7464" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4.6 9C4.73312 8.69842 4.77304 8.36379 4.71429 8.03941C4.65554 7.71503 4.50106 7.41659 4.27337 7.18864C4.04568 6.96069 3.74737 6.80588 3.42308 6.74711C3.09879 6.68835 2.76433 6.72814 2.46281 6.86112C2.16129 6.9941 1.90762 7.21396 1.73651 7.49037C1.5654 7.76678 1.48549 8.08616 1.50729 8.40657C1.52909 8.72698 1.65168 9.03234 1.85785 9.28043C2.06402 9.52852 2.34347 9.70659 2.65679 9.7901C2.97011 9.87361 3.30135 9.85843 3.60578 9.74636" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4.6 9C4.46688 9.30158 4.42696 9.63621 4.48571 9.96059C4.54446 10.285 4.69894 10.5834 4.92663 10.8114C5.15432 11.0393 5.45263 11.1941 5.77692 11.2529C6.10121 11.3117 6.43567 11.2719 6.73719 11.1389C7.03871 11.0059 7.29238 10.786 7.46349 10.5096C7.6346 10.2332 7.71451 9.91384 7.69271 9.59343C7.67091 9.27302 7.54832 8.96766 7.34215 8.71957C7.13598 8.47148 6.85653 8.29341 6.54321 8.2099C6.22989 8.12639 5.89865 8.14157 5.59422 8.25364" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M9 4.6C9.30158 4.46688 9.63621 4.42696 9.96059 4.48571C10.285 4.54446 10.5834 4.69894 10.8114 4.92663C11.0393 5.15432 11.1941 5.45263 11.2529 5.77692C11.3117 6.10121 11.2719 6.43567 11.1389 6.73719C11.0059 7.03871 10.786 7.29238 10.5096 7.46349C10.2332 7.6346 9.91384 7.71451 9.59343 7.69271C9.27302 7.67091 8.96766 7.54832 8.71957 7.34215C8.47148 7.13598 8.29341 6.85653 8.2099 6.54321C8.12639 6.22989 8.14157 5.89865 8.25364 5.59422" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M15 19.4C14.6984 19.5331 14.3638 19.573 14.0394 19.5143C13.715 19.4557 13.4166 19.3011 13.1886 19.0734C12.9607 18.8457 12.8059 18.5474 12.7471 18.2231C12.6883 17.8988 12.7281 17.5643 12.8611 17.2628C12.9941 16.9613 13.214 16.7076 13.4904 16.5365C13.7668 16.3654 14.0862 16.2855 14.4066 16.3073C14.727 16.3291 15.0323 16.4517 15.2804 16.6579C15.5285 16.864 15.7066 17.1435 15.7901 17.4568C15.8736 17.7701 15.8584 18.1014 15.7464 18.4058" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Controls</span>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="tab-content active" id="mouse-tab">
+            <div id="mousepad-container">
+                <div id="mousepad">
+                    <div id="cursor"></div>
+                    <div id="scroll-area">
+                        <div class="scroll-arrow" id="scroll-up">↑</div>
+                        <div class="scroll-arrow" id="scroll-down">↓</div>
+                    </div>
+                </div>
+                <div class="touchpad-hint">
+                    Single tap: Left click | Double tap: Double click | Two-finger scroll: Vertical scroll
+                </div>
+            </div>
+
+            <div class="controls-grid">
+                <button id="leftClick" class="button">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L4 22L7 17L12 22L17 17L20 22L12 2Z" fill="white"/>
+                    </svg>
+                    Left Click
+                </button>
+                <button id="rightClick" class="button button-danger">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L4 22L7 17L12 22L17 17L20 22L12 2Z" fill="white"/>
+                    </svg>
+                    Right Click
+                </button>
+                <button id="middleClick" class="button button-secondary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L4 22L7 17L12 22L17 17L20 22L12 2Z" fill="white"/>
+                    </svg>
+                    Middle
+                </button>
+            </div>
+
+            <div class="controls-row">
+                <button id="copyBtn" class="button button-info">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 16H6C5.46957 16 4.96086 15.7893 4.58579 15.4142C4.21071 15.0391 4 14.5304 4 14V6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4H14C14.5304 4 15.0391 4.21071 15.4142 4.58579C15.7893 4.96086 16 5.46957 16 6V8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 20H18C18.5304 20 19.0391 19.7893 19.4142 19.4142C19.7893 19.0391 20 18.5304 20 18V10C20 9.46957 19.7893 8.96086 19.4142 8.58579C19.0391 8.21071 18.5304 8 18 8H10C9.46957 8 8.96086 8.21071 8.58579 8.58579C8.21071 8.96086 8 9.46957 8 10V18C8 18.5304 8.21071 19.0391 8.58579 19.4142C8.96086 19.7893 9.46957 20 10 20Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Copy
+                </button>
+                <button id="pasteBtn" class="button button-info">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18V6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 8H10C9.44772 8 9 8.44772 9 9V14C9 14.5523 9.44772 15 10 15H15C15.5523 15 16 14.5523 16 14V9C16 8.44772 15.5523 8 15 8Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Paste
+                </button>
+                <button id="enterBtn" class="button button-success">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 3C13.1826 3 14.3538 3.23279 15.4442 3.68508C16.5346 4.13738 17.5212 4.80031 18.3431 5.63604C19.1651 6.47177 19.8049 7.46243 20.2223 8.54346C20.6397 9.62448 20.8258 10.7728 20.7696 11.9223C20.7134 13.0717 20.4165 14.1959 19.8978 15.2226C19.3791 16.2493 18.6502 17.1539 17.7574 17.8769C16.8645 18.5999 15.8278 19.1239 14.7127 19.4144C13.5976 19.7049 12.4299 19.7545 11.2937 19.5597C10.1575 19.3649 9.07901 18.9304 8.12597 18.2863C7.17293 17.6422 6.36809 16.8033 5.76403 15.8268" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Enter
+                </button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="media-tab">
+            <div class="controls-row">
+                <button id="media-play" class="button button-info">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 3L19 12L5 21V3Z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Play
+                </button>
+                <button id="media-pause" class="button button-info">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 4H6V20H10V4Z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M18 4H14V20H18V4Z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Pause
+                </button>
+            </div>
+
+            <div class="controls-row">
+                <button id="media-volume-up" class="button button-info">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 5L6 9H2V15H6L11 19V5Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15.54 8.46C16.4774 9.39782 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5922 15.54 15.53" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M19.07 4.93C20.9447 6.80531 21.9979 9.3484 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Vol+
+                </button>
+                <button id="media-volume-down" class="button button-info">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 5L6 9H2V15H6L11 19V5Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15.54 8.46C16.4774 9.39782 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5922 15.54 15.53" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Vol-
+                </button>
+                <button id="media-mute" class="button button-danger">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 5L6 9H2V15H6L11 19V5Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M23 9L17 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M17 9L23 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Mute
+                </button>
+            </div>
+
+            <div class="controls-row">
+                <button id="media-prev" class="button button-outline">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 21L7 12L19 3V21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 3V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Prev
+                </button>
+                <button id="media-next" class="button button-outline">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 3V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19 12L7 21V3L19 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Next
+                </button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="controls-tab">
+            <div class="controls-row">
+                <button id="screen-share-btn" class="button">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 16V4C22 2.89543 21.1046 2 20 2H8C6.89543 2 6 2.89543 6 4V16C6 17.1046 6.89543 18 8 18H20C21.1046 18 22 17.1046 22 16Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 8V20C2 21.1046 2.89543 22 4 22H16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 12H12.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Screen Share
+                </button>
+                <button id="screen-share-stop" class="button button-danger" style="display: none;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 18L18 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 6L18 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Stop Sharing
+                </button>
+            </div>
+
+            <div class="controls-row">
+                <button id="keyboardToggle" class="button button-warning">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 10H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 14H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 18H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Virtual Keyboard
+                </button>
+                <button id="settings-btn" class="button button-outline">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19.4 15C19.2669 15.3016 19.227 15.6362 19.2857 15.9606C19.3443 16.285 19.4989 16.5834 19.7266 16.8114C19.9543 17.0393 20.2526 17.1941 20.5769 17.2529C20.9012 17.3117 21.2357 17.2719 21.5372 17.1389C21.8387 17.0059 22.0924 16.786 22.2635 16.5096C22.4346 16.2332 22.5145 15.9138 22.4927 15.5934C22.4709 15.273 22.3483 15.0323 22.1421 14.7842C21.936 14.5361 21.6565 14.2934 21.3432 14.2099C21.0299 14.1264 20.6986 14.1416 20.3942 14.2536" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Settings
+                </button>
+            </div>
+        </div>
+
+        <div id="stats"></div>
+    </div>
+
+    <!-- Hidden keyboard input -->
+    <input type="text" id="keyboardInput">
+
+    <!-- Settings Panel -->
+    <div id="settings-panel">
+        <div class="settings-header">
+            <h2 class="settings-title">Settings</h2>
+            <button class="settings-close" id="close-settings">&times;</button>
+        </div>
+        
+        <div class="settings-row">
+            <span class="settings-label">Theme</span>
+            <select id="theme-selector" class="auth-input">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+            </select>
+        </div>
+        
+        <div class="settings-row">
+            <span class="settings-label">Mouse Sensitivity</span>
+            <span class="settings-value" id="sensitivity-value">2.2</span>
+        </div>
+        <input type="range" min="0.5" max="5" step="0.1" value="2.2" class="slider" id="sensitivity-slider">
+        
+        <div class="settings-row">
+            <span class="settings-label">Scroll Sensitivity</span>
+            <span class="settings-value" id="scroll-sensitivity-value">1.0</span>
+        </div>
+        <input type="range" min="0.1" max="3" step="0.1" value="1.0" class="slider" id="scroll-sensitivity-slider">
+        
+        <div class="settings-row">
+            <span class="settings-label">Double Click Time (ms)</span>
+            <span class="settings-value" id="double-click-value">300</span>
+        </div>
+        <input type="range" min="100" max="1000" step="50" value="300" class="slider" id="double-click-slider">
+        
+        <div class="settings-row">
+            <span class="settings-label">Video Quality</span>
+            <span class="settings-value" id="video-quality-value">80</span>
+        </div>
+        <input type="range" min="30" max="100" step="5" value="80" class="slider" id="video-quality-slider">
+        
+        <div class="settings-row">
+            <span class="settings-label">Max FPS</span>
+            <span class="settings-value" id="max-fps-value">30</span>
+        </div>
+        <input type="range" min="5" max="60" step="5" value="30" class="slider" id="max-fps-slider">
+        
+        <div class="settings-row">
+            <span class="settings-label">Visual Feedback</span>
+            <label class="switch">
+                <input type="checkbox" id="visual-feedback-toggle" checked>
+                <span class="slider-switch"></span>
+            </label>
+        </div>
+        
+        <button id="save-settings" class="auth-button">Save Settings</button>
+    </div>
+
+    <!-- AI Assistant Panel -->
+    <div id="ai-panel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--panel-bg-dark); border: 1px solid var(--border-dark); border-radius: 12px; padding: 20px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; z-index: 200; box-shadow: var(--shadow-xl);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: var(--text-light);">AI Assistant</h3>
+            <button id="close-ai" style="background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        
+        <!-- AI Controls -->
+        <div id="ai-controls" style="margin-top: 20px;">
+            <div id="ai-status" style="margin-bottom: 15px; padding: 10px; border-radius: 6px; text-align: center; font-size: 14px;">
+                <!-- Status will be filled by JavaScript -->
+            </div>
+            
+            <div style="display: grid; gap: 10px; margin-bottom: 20px;">
+                <button id="ai-summarize" class="button button-info">
+                    📝 Summarize Page
+                </button>
+                <button id="ai-analyze" class="button button-info">
+                    🔍 Analyze Content
+                </button>
+                <button id="ai-clear-history" class="button button-outline">
+                    🗑️ Clear History
+                </button>
+            </div>
+            
+            <!-- Question Input -->
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: var(--text-light);">Ask about this page:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="ai-question" placeholder="What is this page about?" style="flex: 1; padding: 10px; border: 1px solid var(--border-dark); border-radius: 6px; background: var(--bg-darker); color: var(--text-light);">
+                    <button id="ai-ask" class="button button-success">Ask</button>
+                </div>
+            </div>
+            
+            <!-- Results -->
+            <div id="ai-results" style="background: var(--bg-darker); padding: 15px; border-radius: 8px; max-height: 300px; overflow-y: auto; display: none;">
+                <div id="ai-output" style="color: var(--text-light); font-size: 14px; line-height: 1.4;"></div>
+            </div>
+        </div>
+    </div>
+
+<!-- AI Assistant Button -->
+<button id="ai-assistant-btn" class="button button-success" style="position: fixed; bottom: 20px; right: 20px; z-index: 100; border-radius: 50%; width: 60px; height: 60px; font-size: 24px;">
+    🤖
+</button>
+
+    <!-- AI Assistant Button -->
+    <button id="ai-assistant-btn" class="button button-success">
+        🤖
+    </button>
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        // Configuration
+    let config = {
+        mouseSensitivity: 2.2,
+        scrollSensitivity: 1.0,
+        doubleClickTime: 300,
+        theme: 'dark',
+        enableVisualFeedback: true,
+        videoQuality: 80,
+        maxFps: 30
+    };
+
+    // Connection management
+    let socket;
+    let screenShareActive = false;
+    let authenticated = false;
+    const serverIp = '{{ server_ip }}';
+
+    // Mouse control variables
+    let mousepad, cursor, screenCursor, screenShare, screenStatus;
+    let currentCursorPosition = { x: 0, y: 0 };
+    let lastPosition = null;
+    let isTouching = false;
+    let touchStartTime = 0;
+    let touchStartPos = { x: 0, y: 0 };
+
+    // Tap tracking
+    let lastTapTime = 0;
+    let tapTimeout;
+    let movementDistance = 0;
+    const MOVEMENT_THRESHOLD = 8;
+
+    // AI Assistant variables
+    let aiPanel, aiControls, aiResults, aiOutput, aiStatus;
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeUI();
+        loadSettings();
+        initializeConnection();
+        setupEventListeners();
+        initializeAIAssistant();
+    });
+
+    function initializeUI() {
+        mousepad = document.getElementById('mousepad');
+        cursor = document.getElementById('cursor');
+        screenCursor = document.getElementById('screen-cursor');
+        screenShare = document.getElementById('screen-share');
+        screenStatus = document.getElementById('screen-status');
+        
+        // Set initial cursor position
+        const rect = mousepad.getBoundingClientRect();
+        currentCursorPosition = { 
+            x: rect.width / 2, 
+            y: rect.height / 2 
+        };
+        updateCursorPosition();
+    }
+
+    function initializeAIAssistant() {
+        aiPanel = document.getElementById('ai-panel');
+        aiControls = document.getElementById('ai-controls');
+        aiResults = document.getElementById('ai-results');
+        aiOutput = document.getElementById('ai-output');
+        aiStatus = document.getElementById('ai-status');
+        
+        // Event listeners
+        document.getElementById('ai-assistant-btn').addEventListener('click', showAIPanel);
+        document.getElementById('close-ai').addEventListener('click', hideAIPanel);
+        document.getElementById('ai-summarize').addEventListener('click', summarizePage);
+        document.getElementById('ai-analyze').addEventListener('click', analyzePage);
+        document.getElementById('ai-ask').addEventListener('click', askQuestion);
+        document.getElementById('ai-question').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') askQuestion();
+        });
+        document.getElementById('ai-clear-history').addEventListener('click', clearHistory);
+        
+        // Check AI status on load
+        checkAIStatus();
+    }
+
+    function loadSettings() {
+        const savedConfig = localStorage.getItem('wifiMouseConfig');
+        if (savedConfig) {
+            config = { ...config, ...JSON.parse(savedConfig) };
+            applyConfig();
+        }
+    }
+
+    function applyConfig() {
+        document.body.className = config.theme === 'light' ? 'light-theme' : '';
+        
+        // Update all sliders and values
+        document.getElementById('sensitivity-slider').value = config.mouseSensitivity;
+        document.getElementById('sensitivity-value').textContent = config.mouseSensitivity;
+        document.getElementById('scroll-sensitivity-slider').value = config.scrollSensitivity;
+        document.getElementById('scroll-sensitivity-value').textContent = config.scrollSensitivity;
+        document.getElementById('double-click-slider').value = config.doubleClickTime;
+        document.getElementById('double-click-value').textContent = config.doubleClickTime;
+        document.getElementById('video-quality-slider').value = config.videoQuality;
+        document.getElementById('video-quality-value').textContent = config.videoQuality;
+        document.getElementById('max-fps-slider').value = config.maxFps;
+        document.getElementById('max-fps-value').textContent = config.maxFps;
+        document.getElementById('visual-feedback-toggle').checked = config.enableVisualFeedback;
+        document.getElementById('theme-selector').value = config.theme;
+    }
+
+    function saveSettings() {
+        localStorage.setItem('wifiMouseConfig', JSON.stringify(config));
+        
+        if (socket && socket.connected) {
+            socket.emit('update_config', config);
+        }
+    }
+
+    async function initializeConnection() {
+        try {
+            socket = await connectToServer(serverIp);
+            setupSocketListeners();
+        } catch (error) {
+            console.error('Connection failed:', error);
+            updateConnectionStatus('disconnected');
+            setTimeout(initializeConnection, 3000);
+        }
+    }
+
+    function updateConnectionStatus(status) {
+        const statusElement = document.getElementById('connection-status');
+        statusElement.className = `connection-status ${status}`;
+        statusElement.innerHTML = `
+            <div class="status-dot ${status}"></div>
+            <span>${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+        `;
+    }
+
+    async function connectToServer(ip) {
+        return new Promise((resolve, reject) => {
+            updateConnectionStatus('connecting');
+            
+            const newSocket = io.connect(`http://${ip}:5000`, {
+                reconnection: true,
+                reconnectionAttempts: Infinity,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                randomizationFactor: 0.5,
+                timeout: 20000,
+                transports: ['websocket']
+            });
+            
+            newSocket.on('connect', () => {
+                console.log(`Connected to server at ${ip}:5000`);
+                updateConnectionStatus('connected');
+                resolve(newSocket);
+            });
+            
+            newSocket.on('connect_error', (error) => {
+                console.error(`Connection to ${ip}:5000 failed:`, error);
+                updateConnectionStatus('disconnected');
+                reject(error);
+            });
+            
+            newSocket.on('disconnect', (reason) => {
+                if (reason === 'io server disconnect') {
+                    updateConnectionStatus('disconnected');
+                } else {
+                    updateConnectionStatus('connecting');
+                }
+            });
+        });
+    }
+
+    function setupSocketListeners() {
+        // Authentication handlers
+        socket.on('authentication_required', () => {
+            showAuthModal();
+        });
+        
+        socket.on('authentication_success', () => {
+            authenticated = true;
+            hideAuthModal();
+            document.querySelector('.app-container').style.display = 'flex';
+        });
+        
+        socket.on('authentication_failure', () => {
+            alert('Authentication failed. Please try again.');
+        });
+        
+        socket.on('pairing_code', (data) => {
+            document.getElementById('pairing-code-display').textContent = data.code;
+        });
+        
+        // Screen sharing handlers
+        socket.on('screen_frame', (data) => {
+            try {
+                const imageData = base64ToArrayBuffer(data.image);
+                const blob = new Blob([imageData], { type: 'image/jpeg' });
+                const url = URL.createObjectURL(blob);
+                
+                const tempImg = new Image();
+                tempImg.onload = () => {
+                    screenShare.src = url;
+                    screenShare.style.opacity = 1;
+                    updateStats(data.quality, data.timestamp);
+                    
+                    // Update cursor position
+                    if (data.cursor) {
+                        screenCursor.style.transform = `translate(${data.cursor.x}px, ${data.cursor.y}px)`;
+                        screenCursor.style.display = 'block';
+                    }
+                    
+                    URL.revokeObjectURL(url);
+                };
+                tempImg.src = url;
+                
+            } catch (error) {
+                console.error('Frame processing error:', error);
+            }
+        });
+        
+        socket.on('screen_share_status', (data) => {
+            screenShareActive = data.active;
+            document.getElementById('screen-share-btn').style.display = data.active ? 'none' : 'block';
+            document.getElementById('screen-share-stop').style.display = data.active ? 'block' : 'none';
+            
+            if (data.active) {
+                screenShare.style.display = 'block';
+                screenStatus.style.display = 'none';
+                screenCursor.style.display = 'block';
+            } else {
+                screenShare.style.display = 'none';
+                screenStatus.style.display = 'block';
+                screenCursor.style.display = 'none';
+            }
+        });
+
+        // AI Response handlers
+        socket.on('ai_response', (data) => {
+            switch (data.type) {
+                case 'summary':
+                    showAIResult(`
+                        <strong>📄 Page Summary:</strong><br><br>
+                        ${data.summary}<br><br>
+                        <small style="color: var(--text-muted);">Based on ${data.original_text_length} characters of text</small>
+                    `, 'success');
+                    break;
+                    
+                case 'answer':
+                    showAIResult(`
+                        <strong>❓ Question:</strong> ${data.question}<br><br>
+                        <strong>💡 Answer:</strong><br>
+                        ${data.answer}<br><br>
+                        <small style="color: var(--text-muted);">Context: ${data.context_length} characters</small>
+                    `, 'info');
+                    break;
+                    
+                case 'analysis':
+                    if (data.analysis.error) {
+                        showAIResult(`❌ ${data.analysis.error}`, 'error');
+                    } else {
+                        let analysisHTML = `<strong>🔍 Content Analysis:</strong><br><br>`;
+                        
+                        if (data.analysis.topic) {
+                            analysisHTML += `<strong>Topic:</strong> ${data.analysis.topic}<br>`;
+                        }
+                        if (data.analysis.content_type) {
+                            analysisHTML += `<strong>Type:</strong> ${data.analysis.content_type}<br>`;
+                        }
+                        if (data.analysis.key_points) {
+                            analysisHTML += `<br><strong>Key Points:</strong><br>`;
+                            if (Array.isArray(data.analysis.key_points)) {
+                                data.analysis.key_points.forEach(point => {
+                                    analysisHTML += `• ${point}<br>`;
+                                });
+                            } else {
+                                analysisHTML += data.analysis.key_points;
+                            }
+                        }
+                        if (data.analysis.suggested_questions) {
+                            analysisHTML += `<br><strong>Suggested Questions:</strong><br>`;
+                            if (Array.isArray(data.analysis.suggested_questions)) {
+                                data.analysis.suggested_questions.forEach((q, i) => {
+                                    analysisHTML += `${i + 1}. ${q}<br>`;
+                                });
+                            } else {
+                                analysisHTML += data.analysis.suggested_questions;
+                            }
+                        }
+                        
+                        showAIResult(analysisHTML, 'info');
+                    }
+                    break;
+                    
+                case 'error':
+                    showAIResult(`❌ ${data.message}`, 'error');
+                    break;
+                    
+                case 'info':
+                    showAIResult(`ℹ️ ${data.message}`, 'info');
+                    break;
+            }
+        });
+    }
+
+    function setupEventListeners() {
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+        
+        // Mouse pad events
+        setupMousePadEvents();
+        
+        // Button click handlers
+        setupButtonHandlers();
+        
+        // Settings panel handlers
+        setupSettingsHandlers();
+        
+        // Handle keyboard input
+        const keyboardInput = document.getElementById('keyboardInput');
+        keyboardInput.addEventListener('keydown', (e) => {
+            const keyMap = {
+                'Enter': 'enter',
+                'Backspace': 'backspace',
+                'Tab': 'tab',
+                'Escape': 'escape',
+                'ArrowUp': 'up',
+                'ArrowDown': 'down',
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right',
+                'Control': 'ctrl',
+                'Alt': 'alt',
+                'Shift': 'shift',
+                'Meta': 'cmd'
+            };
+            
+            if (keyMap[e.key] && socket && socket.connected && authenticated) {
+                e.preventDefault();
+                socket.emit('keyboard_key', { key: keyMap[e.key] });
+            }
+        });
+        
+        keyboardInput.addEventListener('input', (e) => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('keyboard_input', { text: e.target.value });
+                e.target.value = '';
+            }
+        });
+        
+        // Keyboard toggle button
+        document.getElementById('keyboardToggle').addEventListener('click', () => {
+            keyboardInput.focus();
+        });
+    }
+
+    function setupMousePadEvents() {
+        mousepad.addEventListener('mousedown', (e) => {
+            if (e.button === 0 && authenticated) {
+                startTracking(e.clientX, e.clientY);
+            }
+        });
+        
+        mousepad.addEventListener('mousemove', (e) => {
+            if (isTouching && e.buttons === 1 && authenticated) {
+                handleMovement(e.clientX, e.clientY);
+            }
+        });
+        
+        mousepad.addEventListener('mouseup', (e) => {
+            if (e.button === 0 && isTouching && authenticated) {
+                endTracking(e.clientX, e.clientY);
+            }
+        });
+        
+        // Touch events for mobile
+        mousepad.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            if (authenticated) {
+                startTracking(touch.clientX, touch.clientY);
+            }
+        });
+        
+        mousepad.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            if (isTouching && authenticated) {
+                handleMovement(touch.clientX, touch.clientY);
+            }
+        });
+        
+        mousepad.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            if (authenticated) {
+                endTracking(touch.clientX, touch.clientY);
+            }
+        });
+        
+        // Scroll buttons
+        document.getElementById('scroll-up').addEventListener('mousedown', () => {
+            if (authenticated) {
+                sendScroll(-50 * config.scrollSensitivity);
+                flashScrollButton('scroll-up');
+            }
+        });
+        
+        document.getElementById('scroll-down').addEventListener('mousedown', () => {
+            if (authenticated) {
+                sendScroll(50 * config.scrollSensitivity);
+                flashScrollButton('scroll-down');
+            }
+        });
+        
+        document.getElementById('scroll-up').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (authenticated) {
+                sendScroll(-50 * config.scrollSensitivity);
+                flashScrollButton('scroll-up');
+            }
+        });
+        
+        document.getElementById('scroll-down').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (authenticated) {
+                sendScroll(50 * config.scrollSensitivity);
+                flashScrollButton('scroll-down');
+            }
+        });
+    }
+
+    function startTracking(clientX, clientY) {
+        const position = getPosition(clientX, clientY);
+        
+        isTouching = true;
+        lastPosition = position;
+        touchStartTime = Date.now();
+        touchStartPos = { x: clientX, y: clientY };
+        movementDistance = 0;
+    }
+
+    function handleMovement(clientX, clientY) {
+        const position = getPosition(clientX, clientY);
+        const rect = mousepad.getBoundingClientRect();
+        
+        // Calculate movement distance for tap detection
+        if (lastPosition) {
+            movementDistance += Math.hypot(
+                position.x - lastPosition.x,
+                position.y - lastPosition.y
+            );
+        }
+        
+        // Send movement data to server
+        const deltaX = position.x - lastPosition.x;
+        const deltaY = position.y - lastPosition.y;
+        
+        if (socket && socket.connected && authenticated) {
+            socket.emit('move_mouse', {
+                deltaX: deltaX,
+                deltaY: deltaY
+            });
+        }
+        
+        // Update local cursor position
+        currentCursorPosition.x = Math.max(2, Math.min(currentCursorPosition.x + deltaX, rect.width - 2));
+        currentCursorPosition.y = Math.max(2, Math.min(currentCursorPosition.y + deltaY, rect.height - 2));
+        
+        updateCursorPosition();
+        lastPosition = position;
+    }
+
+    function endTracking(clientX, clientY) {
+        const currentTime = Date.now();
+        const position = getPosition(clientX, clientY);
+        const tapLength = currentTime - touchStartTime;
+        
+        // Handle tap/click
+        if (movementDistance < MOVEMENT_THRESHOLD && authenticated) {
+            if (currentTime - lastTapTime < config.doubleClickTime) {
+                // Double tap
+                clearTimeout(tapTimeout);
+                createRipple(position.x, position.y);
+                sendClick('left', true);
+                lastTapTime = 0;
+            } else {
+                // Single tap (wait to see if it becomes a double tap)
+                tapTimeout = setTimeout(() => {
+                    createRipple(position.x, position.y);
+                    sendClick('left', false);
+                }, config.doubleClickTime);
+                lastTapTime = currentTime;
+            }
+        }
+        
+        isTouching = false;
+        lastPosition = null;
+        movementDistance = 0;
+    }
+
+    function getPosition(clientX, clientY) {
+        const rect = mousepad.getBoundingClientRect();
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    }
+
+    function updateCursorPosition() {
+        const rect = mousepad.getBoundingClientRect();
+        cursor.style.transform = `translate(${currentCursorPosition.x}px, ${currentCursorPosition.y}px)`;
+        
+        if (screenShare.offsetWidth > 0 && screenShare.offsetHeight > 0) {
+            const xRatio = screenShare.offsetWidth / rect.width;
+            const yRatio = screenShare.offsetHeight / rect.height;
+            const screenX = currentCursorPosition.x * xRatio;
+            const screenY = currentCursorPosition.y * yRatio;
+            
+            screenCursor.style.transform = `translate(${screenX}px, ${screenY}px)`;
+            screenCursor.style.display = 'block';
+        }
+    }
+
+    function createRipple(x, y) {
+        if (!config.enableVisualFeedback) return;
+        
+        const ripple = document.createElement('div');
+        ripple.className = 'double-tap-indicator';
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        mousepad.appendChild(ripple);
+        
+        ripple.addEventListener('animationend', () => {
+            ripple.remove();
+        });
+    }
+
+    function flashCursor(color) {
+        if (!config.enableVisualFeedback) return;
+        
+        const originalColor = cursor.style.backgroundImage;
+        cursor.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${encodeURIComponent(color)}"><path d="M12 2L4 22L7 17L12 22L17 17L20 22Z"/></svg>')`;
+        setTimeout(() => {
+            cursor.style.backgroundImage = originalColor;
+        }, 200);
+    }
+
+    function flashScrollButton(id) {
+        if (!config.enableVisualFeedback) return;
+        
+        const button = document.getElementById(id);
+        button.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+        setTimeout(() => {
+            button.style.backgroundColor = 'var(--primary)';
+        }, 200);
+    }
+
+    function sendClick(button, doubleClick) {
+        if (socket && socket.connected && authenticated) {
+            socket.emit('click', {
+                button: button,
+                double: doubleClick
+            });
+            
+            flashCursor(button === 'left' ? 'var(--primary)' : 'var(--danger)');
+        }
+    }
+
+    function sendScroll(deltaY) {
+        if (socket && socket.connected && authenticated) {
+            socket.emit('scroll', { deltaY: deltaY });
+        }
+    }
+
+    function setupButtonHandlers() {
+        // Click buttons
+        document.getElementById('leftClick').addEventListener('click', () => {
+            if (authenticated) sendClick('left', false);
+        });
+        
+        document.getElementById('rightClick').addEventListener('click', () => {
+            if (authenticated) sendClick('right', false);
+        });
+        
+        document.getElementById('middleClick').addEventListener('click', () => {
+            if (authenticated && socket && socket.connected) {
+                socket.emit('click', { button: 'middle' });
+                flashCursor('var(--secondary)');
+            }
+        });
+        
+        // Keyboard actions
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('keyboard_action', { action: 'copy' });
+                flashCursor('var(--info)');
+            }
+        });
+        
+        document.getElementById('pasteBtn').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('keyboard_action', { action: 'paste' });
+                flashCursor('var(--info)');
+            }
+        });
+        
+        document.getElementById('enterBtn').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('keyboard_action', { action: 'enter' });
+                flashCursor('var(--success)');
+            }
+        });
+        
+        // Media controls
+        document.getElementById('media-play').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('media_key', { key: 'play_pause' });
+            }
+        });
+        
+        document.getElementById('media-pause').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('media_key', { key: 'play_pause' });
+            }
+        });
+        
+        document.getElementById('media-volume-up').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('media_key', { key: 'volume_up' });
+            }
+        });
+        
+        document.getElementById('media-volume-down').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('media_key', { key: 'volume_down' });
+            }
+        });
+        
+        document.getElementById('media-mute').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('media_key', { key: 'volume_mute' });
+            }
+        });
+        
+        document.getElementById('media-prev').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('media_key', { key: 'previous_track' });
+            }
+        });
+        
+        document.getElementById('media-next').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('media_key', { key: 'next_track' });
+            }
+        });
+        
+        // Screen sharing controls
+        document.getElementById('screen-share-btn').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('start_screen_share');
+            }
+        });
+        
+        document.getElementById('screen-share-stop').addEventListener('click', () => {
+            if (socket && socket.connected && authenticated) {
+                socket.emit('stop_screen_share');
+            }
+        });
+    }
+
+    function setupSettingsHandlers() {
+        const settingsPanel = document.getElementById('settings-panel');
+        
+        // Open/close settings
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            settingsPanel.style.display = 'block';
+        });
+        
+        document.getElementById('close-settings').addEventListener('click', () => {
+            settingsPanel.style.display = 'none';
+        });
+        
+        // Settings sliders
+        document.getElementById('sensitivity-slider').addEventListener('input', (e) => {
+            config.mouseSensitivity = parseFloat(e.target.value);
+            document.getElementById('sensitivity-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('scroll-sensitivity-slider').addEventListener('input', (e) => {
+            config.scrollSensitivity = parseFloat(e.target.value);
+            document.getElementById('scroll-sensitivity-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('double-click-slider').addEventListener('input', (e) => {
+            config.doubleClickTime = parseInt(e.target.value);
+            document.getElementById('double-click-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('video-quality-slider').addEventListener('input', (e) => {
+            config.videoQuality = parseInt(e.target.value);
+            document.getElementById('video-quality-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('max-fps-slider').addEventListener('input', (e) => {
+            config.maxFps = parseInt(e.target.value);
+            document.getElementById('max-fps-value').textContent = e.target.value;
+        });
+        
+        // Toggles
+        document.getElementById('visual-feedback-toggle').addEventListener('change', (e) => {
+            config.enableVisualFeedback = e.target.checked;
+        });
+        
+        // Selects
+        document.getElementById('theme-selector').addEventListener('change', (e) => {
+            config.theme = e.target.value;
+            document.body.className = config.theme === 'light' ? 'light-theme' : '';
+        });
+        
+        // Save settings
+        document.getElementById('save-settings').addEventListener('click', () => {
+            saveSettings();
+            settingsPanel.style.display = 'none';
+        });
+        
+        // Authentication
+        document.getElementById('auth-submit').addEventListener('click', authenticate);
+        
+        document.getElementById('auth-password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') authenticate();
+        });
+    }
+
+    // AI Assistant Functions
+    function showAIPanel() {
+        aiPanel.style.display = 'block';
+        checkAIStatus();
+    }
+
+    function hideAIPanel() {
+        aiPanel.style.display = 'none';
+    }
+
+    function checkAIStatus() {
+        fetch('/api/ai/status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.configured) {
+                    aiStatus.innerHTML = '<div style="color: var(--success);">✅ AI Assistant Ready</div><div style="font-size: 12px; color: var(--text-muted);">API key loaded from .env file</div>';
+                } else {
+                    aiStatus.innerHTML = '<div style="color: var(--warning);">⚠️ AI Assistant Not Configured</div><div style="font-size: 12px; color: var(--text-muted);">Add OPENAI_API_KEY to your .env file</div>';
+                }
+            })
+            .catch(error => {
+                console.error('AI status check failed:', error);
+                aiStatus.innerHTML = '<div style="color: var(--danger);">❌ Failed to check AI status</div>';
+            });
+    }
+
+    function summarizePage() {
+        if (!socket || !authenticated) {
+            showAIResult('Please authenticate first', 'error');
+            return;
+        }
+        
+        showAIResult('🔄 Capturing screen and generating summary...', 'info');
+        socket.emit('ai_summarize_page');
+    }
+
+    function analyzePage() {
+        if (!socket || !authenticated) {
+            showAIResult('Please authenticate first', 'error');
+            return;
+        }
+        
+        showAIResult('🔄 Analyzing page content...', 'info');
+        socket.emit('ai_analyze_page');
+    }
+
+    function askQuestion() {
+        const question = document.getElementById('ai-question').value.trim();
+        
+        if (!question) {
+            alert('Please enter a question');
+            return;
+        }
+        
+        if (!socket || !authenticated) {
+            showAIResult('Please authenticate first', 'error');
+            return;
+        }
+        
+        showAIResult('🔄 Searching for answer...', 'info');
+        socket.emit('ai_ask_question', { question: question });
+        document.getElementById('ai-question').value = '';
+    }
+
+    function clearHistory() {
+        if (!socket || !authenticated) {
+            return;
+        }
+        
+        socket.emit('ai_clear_history');
+        showAIResult('Conversation history cleared', 'info');
+    }
+
+    function showAIResult(message, type = 'info') {
+        aiResults.style.display = 'block';
+        
+        const colors = {
+            info: '#3b82f6',
+            success: '#10b981',
+            error: '#ef4444',
+            warning: '#f59e0b'
+        };
+        
+        aiOutput.innerHTML = `<div style="color: ${colors[type] || colors.info}">${message}</div>`;
+        aiResults.scrollTop = aiResults.scrollHeight;
+    }
+
+    function authenticate() {
+        const password = document.getElementById('auth-password').value;
+        
+        if (socket && socket.connected) {
+            socket.emit('authenticate', {
+                password: password
+            });
+        }
+    }
+
+    function showAuthModal() {
+        document.getElementById('auth-modal').style.display = 'flex';
+        document.getElementById('auth-password').focus();
+    }
+
+    function hideAuthModal() {
+        document.getElementById('auth-modal').style.display = 'none';
+        document.getElementById('auth-password').value = '';
+    }
+
+    function base64ToArrayBuffer(base64) {
+        const binaryString = atob(base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+    }
+
+    function updateStats(quality, serverTime) {
+        const latency = Math.round((performance.now()/1000 - serverTime) * 1000);
+        const statsElement = document.getElementById('stats');
+        statsElement.textContent = `Q: ${quality}% | ${latency}ms`;
+    }
+
+    // Handle resize
+    function handleResize() {
+        const rect = mousepad.getBoundingClientRect();
+        currentCursorPosition = { 
+            x: Math.min(rect.width - 2, Math.max(2, currentCursorPosition.x)),
+            y: Math.min(rect.height - 2, Math.max(2, currentCursorPosition.y))
+        };
+        updateCursorPosition();
+    }
+
+    window.addEventListener('resize', handleResize);    
+    </script>
+</body>
+</html>

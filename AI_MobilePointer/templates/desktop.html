@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Mouse Control - Server Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-dark: #111827;
+            --text-light: #f9fafb;
+            --panel-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #9ca3af;
+            font-size: 1.1rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-value.connections {
+            color: var(--primary);
+        }
+
+        .stat-value.uptime {
+            color: var(--success);
+        }
+
+        .stat-value.clients {
+            color: var(--warning);
+        }
+
+        .stat-value.status {
+            color: #10b981;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .qr-section {
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .qr-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .qr-code img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .server-info {
+            background: rgba(79, 70, 229, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .server-info h4 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .server-info p {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #374151;
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .connection-list {
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .connection-list h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .connection-item {
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .connection-type {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .connection-type.mobile {
+            background: rgba(79, 70, 229, 0.2);
+            color: var(--primary);
+        }
+
+        .connection-type.desktop {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .no-connections {
+            text-align: center;
+            color: #9ca3af;
+            padding: 20px;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WiFi Mouse Control</h1>
+            <p>Server Dashboard & Mobile Remote Management</p>
+        </div>
+
+        <div class="dashboard">
+            <div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value connections" id="currentConnections">0</div>
+                        <div class="stat-label">Active Connections</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value uptime" id="serverUptime">0s</div>
+                        <div class="stat-label">Server Uptime</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value clients" id="totalConnections">0</div>
+                        <div class="stat-label">Total Connections</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value status" id="serverStatus">Running</div>
+                        <div class="stat-label">Server Status</div>
+                    </div>
+                </div>
+
+                <div class="connection-list">
+                    <h3>Connected Clients</h3>
+                    <div id="clientsList">
+                        <div class="no-connections">No active connections</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qr-section">
+                <h3 class="qr-title">Connect Mobile Device</h3>
+                
+                {% if qr_code %}
+                <div class="qr-code">
+                    <img src="{{ qr_code }}" alt="QR Code for Mobile Connection">
+                </div>
+                {% else %}
+                <div style="color: #ef4444; margin: 20px 0;">
+                    QR code unavailable
+                </div>
+                {% endif %}
+
+                <div class="server-info">
+                    <h4>Connection Info</h4>
+                    <p><strong>URL:</strong> {{ server_url }}</p>
+                    <p><strong>IP:</strong> {{ server_ip }}</p>
+                    <p><strong>Port:</strong> 5000</p>
+                    <p><strong>Pairing Code:</strong> <span id="pairingCode">Loading...</span></p>
+                </div>
+
+                <div class="actions">
+                    <a href="/mobile" class="btn" target="_blank">Open Mobile Remote</a>
+                    <button class="btn btn-secondary" onclick="copyUrl()">Copy URL</button>
+                    <button class="btn btn-success" onclick="refreshStats()">Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="last-updated">
+            Last updated: <span id="lastUpdated">Just now</span>
+        </div>
+    </div>
+
+    <script>
+        function copyUrl() {
+            navigator.clipboard.writeText("{{ server_url }}");
+            alert("Server URL copied to clipboard!\n\nOpen this URL on your mobile device to control this computer.");
+        }
+
+        function refreshStats() {
+            updateStats();
+            showNotification('Stats refreshed!');
+        }
+
+        function showNotification(message) {
+            // Simple notification
+            alert(message);
+        }
+
+        function updateStats() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    // Update stats
+                    document.getElementById('currentConnections').textContent = data.current_connections;
+                    document.getElementById('totalConnections').textContent = data.total_connections;
+                    document.getElementById('pairingCode').textContent = data.pairing_code;
+                    
+                    // Calculate uptime
+                    const startTime = new Date(data.start_time);
+                    const uptime = Math.floor((new Date() - startTime) / 1000);
+                    const hours = Math.floor(uptime / 3600);
+                    const minutes = Math.floor((uptime % 3600) / 60);
+                    const seconds = uptime % 60;
+                    document.getElementById('serverUptime').textContent = 
+                        `${hours}h ${minutes}m ${seconds}s`;
+                    
+                    document.getElementById('serverStatus').textContent = data.status;
+                    
+                    // Update last updated time
+                    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+                    
+                    // Update connections list (simplified)
+                    const clientsList = document.getElementById('clientsList');
+                    if (data.current_connections > 0) {
+                        clientsList.innerHTML = `
+                            <div class="connection-item">
+                                <span>Mobile Remote</span>
+                                <span class="connection-type mobile">MOBILE</span>
+                            </div>
+                        `;
+                    } else {
+                        clientsList.innerHTML = '<div class="no-connections">No active connections</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to fetch server status:', error);
+                    document.getElementById('serverStatus').textContent = 'Error';
+                    document.getElementById('serverStatus').style.color = '#ef4444';
+                });
+        }
+
+        // Update stats every 3 seconds
+        setInterval(updateStats, 3000);
+        
+        // Initial load
+        updateStats();
+    </script>
+</body>
+</html>
