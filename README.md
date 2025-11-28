@@ -5,7 +5,7 @@ CursorFlow is a web-based application that combines the functionalities of two i
 ---
 
 # AI_MobilePointer
-**GitHub Repository:** https://github.com/iamdivyanshukumar/AI_MobilePointer.git₹
+**GitHub Repository:** https://github.com/iamdivyanshukumar/AI_MobilePointer.git
 
 A powerful remote control application that transforms your mobile device into a wireless mouse, keyboard, and AI-powered assistant for your computer. Control your desktop remotely with screen sharing capabilities and get AI-powered insights about your screen content.
 
